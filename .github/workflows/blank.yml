@@ -15,10 +15,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  integrate:
-    uses: carlosperate/arm-none-eabi-gcc-action@
-    run: arm-none-eabi-gcc --version
-      
+
 
   # This workflow contains a single job called "build"
   build:
