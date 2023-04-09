@@ -1,0 +1,4 @@
+This is TEMPlate LIBraryincluded for the purpose of being a simple bolierplayte implementation
+which serves two purposes:
+-Due to it's skeleton nature it can be copied and used as a reliable starting point for developing new libraries
+-It serves as an easily digestible prop for the unit testing examples
