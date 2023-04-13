@@ -42,7 +42,7 @@ std::string UIButton::print(){
     return std::string();
   }
   if(_displayAsValue){
-    std::string(_value);
+    return std::to_string(*_value);
   } else {
     return _displayAs;
   }

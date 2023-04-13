@@ -1,6 +1,12 @@
 #include "main.h"
 alarm_pool_t* sample;
 
+struct pinButton{
+  int GPIO;
+  volatile bool clicked;
+  UIButton* button;
+};
+
 void pinSetup(){
   Serial.println("Pin setup...");
   //RGB led
@@ -12,7 +18,7 @@ void pinSetup(){
   pinMode(11, OUTPUT);
   pinMode(10, OUTPUT);
   //button
-  pinMode(9, INPUT); //CLICK
+  pinMode(9, INPUT_PULLUP); //CLICK
   pinMode(8, INPUT_PULLUP);
   pinMode(7, INPUT_PULLUP);
   //buzzer
@@ -37,15 +43,39 @@ void defineButtons(){
    msg.append(" buttons!");
    Serial.println(msg.c_str());
 }
-volatile int userdata = 0;
+volatile int  userdata = 0;
 int last = 0;
 repeating_timer rtInst;
 
 bool callbackFunct(repeating_timer* rt){
-  *((int*)rt->user_data) = digitalRead(9);
+  pinButton* arrOf = (pinButton*)rt->user_data;
+  if(0 == digitalRead((*arrOf).GPIO)){
+    digitalWrite(15,1);
+    (*arrOf).clicked = (volatile bool)false;
+  }
+ 
+
+  
   return true;
 }
 
+void assignButtons(){
+  Serial.println("Assigning buttons to GPIOs...");
+  pinButton yellow;
+  yellow.GPIO = 9;
+  yellow.clicked = false;
+  yellow.button = buttonsArray;
+  pinButton green;
+  green.GPIO = 8;
+  green.clicked = false;
+  green.button = buttonsArray+(sizeof(UIButton));
+  pinButton arr[] = {yellow, green};
+  pinDictionary = arr;
+  Serial.println("Buttons to GPIOs OK");
+}
+std::string printe;
+absolute_time_t timeStamp;
+int ledGpi = 13;
 void setup() {
   Serial.println("Setup Starting...");
   Serial.begin(9600);
@@ -59,20 +89,24 @@ void setup() {
   screen.init();
   Serial.println("LCD SETUP complete...");
   defineButtons();
+  assignButtons();
     Serial.println("createAlarmPool...");
   sample = createAlarmPool();
   Serial.println("created!");
-  createTimeout(sample, 50000,callbackFunct,(void*)&userdata, (repeating_timer_t*)&rtInst);
+  //createTimeout(sample, 25000,callbackFunct,(void*)pinDictionary, (repeating_timer_t*)&rtInst);
+  printe = std::string();
+  digitalWrite(ledGpi, 1);
+  timeStamp = make_timeout_time_ms(500);
   
- 
 }
 
 
 void loop() {
-  if(userdata != last){
-    last = userdata;
-    Serial.println(last);
-
-    screen.printFromStart(std::to_string(last).c_str());
+  pinButton* localptr = pinDictionary;
+  if(localptr->GPIO == 9){
+    Serial.println("Equal");
   }
+  Serial.println(std::to_string(localptr->GPIO).c_str());
+
+    
 }

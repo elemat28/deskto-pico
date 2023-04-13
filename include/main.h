@@ -8,4 +8,6 @@ UIButton* buttonsArray;
 LCDui screen;
 bool ledState;
 static int numOfUIButtons;
+struct pinButton;
+pinButton* pinDictionary;
 #endif
