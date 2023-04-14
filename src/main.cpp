@@ -1,11 +1,34 @@
 #include "main.h"
 alarm_pool_t* sample;
 
-struct pinButton{
+struct pinButtonDeclaration {
+  std::string HW_BUTTON_ID; 
   int GPIO;
-  volatile bool clicked;
-  UIButton* button;
 };
+
+struct pinButton{
+  std::string HW_BUTTON_ID; 
+  int GPIO;
+  UIButton* button;
+  int debounceMs = 50;
+  volatile bool clicked = false;
+  volatile int pinReading = 0;
+};
+
+
+pinButtonDeclaration declarationDict[] = {
+  {std::string("BUTTON_YELLOW"), 9},
+  {std::string("BUTTON_GREEN"), 8},
+  {std::string("BUTTON_BLUE"), 7}
+};
+
+const int NUM_OF_DECLARED_PIN_BUTTONS = sizeof(declarationDict)/sizeof(pinButtonDeclaration);
+
+UIButton UIButtonsArray[NUM_OF_DECLARED_PIN_BUTTONS];
+
+pinButton pinButtonDict[NUM_OF_DECLARED_PIN_BUTTONS];
+
+absolute_time_t debounceTimestamps[NUM_OF_DECLARED_PIN_BUTTONS];
 
 void pinSetup(){
   Serial.println("Pin setup...");
@@ -18,30 +41,19 @@ void pinSetup(){
   pinMode(11, OUTPUT);
   pinMode(10, OUTPUT);
   //button
-  pinMode(9, INPUT_PULLUP); //CLICK
-  pinMode(8, INPUT_PULLUP);
-  pinMode(7, INPUT_PULLUP);
+  pinMode(9, INPUT_PULLDOWN); //CLICK
+  pinMode(8, INPUT_PULLDOWN);
+  pinMode(7, INPUT_PULLDOWN);
   //buzzer
   pinMode(6, OUTPUT);
   Serial.println("Pin setup complete!");
 }
 
 void defineButtons(){
-   Serial.println("Defining UI buttons...");
-   UIButton generatedButtons[] = {
-    UIButton()
-    ,UIButton()
-    ,UIButton()
-    ,UIButton()
-    ,UIButton()
-    ,UIButton()
-    };
-   buttonsArray = generatedButtons;
-   numOfUIButtons = sizeof(generatedButtons)/sizeof(UIButton);
-   std::string msg = std::string("Defined ");
-   msg.append(std::to_string(numOfUIButtons));
-   msg.append(" buttons!");
-   Serial.println(msg.c_str());
+  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
+  {
+    UIButtonsArray[i] = UIButton();
+  }
 }
 volatile int  userdata = 0;
 int last = 0;
@@ -49,33 +61,47 @@ repeating_timer rtInst;
 
 bool callbackFunct(repeating_timer* rt){
   pinButton* arrOf = (pinButton*)rt->user_data;
-  if(0 == digitalRead((*arrOf).GPIO)){
+  pinButton parr = arrOf[0];
+  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
+  {
+    pinButton parr = arrOf[i];
+    if(0 < digitalRead(parr.GPIO)){
     digitalWrite(15,1);
-    (*arrOf).clicked = (volatile bool)false;
+    parr.clicked = false;
+    }
   }
+  
+  
  
 
   
   return true;
 }
 
+void interruptFunction(void){
+
+  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
+  {
+    pinButtonDict[i].pinReading = digitalRead(pinButtonDict[i].GPIO);
+  }
+}
+
 void assignButtons(){
   Serial.println("Assigning buttons to GPIOs...");
-  pinButton yellow;
-  yellow.GPIO = 9;
-  yellow.clicked = false;
-  yellow.button = buttonsArray;
-  pinButton green;
-  green.GPIO = 8;
-  green.clicked = false;
-  green.button = buttonsArray+(sizeof(UIButton));
-  pinButton arr[] = {yellow, green};
-  pinDictionary = arr;
+  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
+  {
+    pinButtonDict[i] = pinButton{declarationDict[i].HW_BUTTON_ID, declarationDict[i].GPIO, &(UIButtonsArray[i])};
+    debounceTimestamps[i] = make_timeout_time_ms(pinButtonDict[i].debounceMs);
+  }
   Serial.println("Buttons to GPIOs OK");
 }
 std::string printe;
 absolute_time_t timeStamp;
 int ledGpi = 13;
+
+
+
+
 void setup() {
   Serial.println("Setup Starting...");
   Serial.begin(9600);
@@ -93,20 +119,35 @@ void setup() {
     Serial.println("createAlarmPool...");
   sample = createAlarmPool();
   Serial.println("created!");
-  //createTimeout(sample, 25000,callbackFunct,(void*)pinDictionary, (repeating_timer_t*)&rtInst);
+  createTimeout(sample, 25000,callbackFunct,(void*)pinButtonDict, (repeating_timer_t*)&rtInst);
   printe = std::string();
   digitalWrite(ledGpi, 1);
   timeStamp = make_timeout_time_ms(500);
-  
+  attachInterrupt(9, interruptFunction,  CHANGE);
+  attachInterrupt(8, interruptFunction, CHANGE);
+  attachInterrupt(7, interruptFunction, CHANGE);
 }
 
 
 void loop() {
-  pinButton* localptr = pinDictionary;
-  if(localptr->GPIO == 9){
-    Serial.println("Equal");
+  if(time_reached(timeStamp)){
+    digitalWrite(ledGpi, !digitalRead(ledGpi));
+    timeStamp = make_timeout_time_ms(500);
   }
-  Serial.println(std::to_string(localptr->GPIO).c_str());
+   for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
+  {
+    if((pinButtonDict[i].debounceMs == 0 ) || (time_reached(debounceTimestamps[i])))
+    {
+      pinButton dupe = pinButtonDict[i];
+      if(dupe.pinReading > 0){
+        Serial.print(dupe.HW_BUTTON_ID.c_str());
+        Serial.println(std::to_string(dupe.pinReading).c_str());
+        pinButtonDict[i].clicked = false;
+        screen.printFromStart(dupe.HW_BUTTON_ID.c_str());
+        debounceTimestamps[i] = make_timeout_time_ms(pinButtonDict[i].debounceMs);
+      }
+    }
+  }
 
     
 }

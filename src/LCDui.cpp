@@ -52,6 +52,7 @@ void LCDui::clear(){
 }
 
 void LCDui::printFromStart(const char* message){
+  obj.clear();
   obj.setCursor(0,0);
   obj.print(message);
 }
