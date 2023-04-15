@@ -41,9 +41,9 @@ void pinSetup(){
   pinMode(11, OUTPUT);
   pinMode(10, OUTPUT);
   //button
-  pinMode(9, INPUT_PULLDOWN); //CLICK
-  pinMode(8, INPUT_PULLDOWN);
-  pinMode(7, INPUT_PULLDOWN);
+  pinMode(9, INPUT_PULLUP); //CLICK
+  pinMode(8, INPUT_PULLUP);
+  pinMode(7, INPUT_PULLUP);
   //buzzer
   pinMode(6, OUTPUT);
   Serial.println("Pin setup complete!");
@@ -95,10 +95,32 @@ void assignButtons(){
   }
   Serial.println("Buttons to GPIOs OK");
 }
+
+void screenBacklightToggle(void){
+  Serial.println("screenToggleCallback!");
+  screen.setBacklightEnabled(!screen.isBacklightOn());
+}
+
 std::string printe;
 absolute_time_t timeStamp;
 int ledGpi = 13;
 
+void assignFunctionsToButtons(){
+  pinButton cpyOf = pinButtonDict[0];
+  Serial.println("assigning functions to buttons...");
+  cpyOf.button->setCallback(&screenBacklightToggle);
+  cpyOf.button->enable();
+  pinButtonDict[0] = cpyOf;
+  Serial.println("OK!");
+}
+
+void setupInterrupts(){
+  Serial.println("attaching interrupts...");
+  attachInterrupt(digitalPinToInterrupt(7), interruptFunction, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(8), interruptFunction, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(9), interruptFunction, CHANGE);
+  Serial.println("OK!");
+}
 
 
 
@@ -119,13 +141,12 @@ void setup() {
     Serial.println("createAlarmPool...");
   sample = createAlarmPool();
   Serial.println("created!");
+  assignFunctionsToButtons();
   createTimeout(sample, 25000,callbackFunct,(void*)pinButtonDict, (repeating_timer_t*)&rtInst);
   printe = std::string();
   digitalWrite(ledGpi, 1);
   timeStamp = make_timeout_time_ms(500);
-  attachInterrupt(9, interruptFunction,  CHANGE);
-  attachInterrupt(8, interruptFunction, CHANGE);
-  attachInterrupt(7, interruptFunction, CHANGE);
+  setupInterrupts();
 }
 
 
@@ -139,8 +160,14 @@ void loop() {
     if((pinButtonDict[i].debounceMs == 0 ) || (time_reached(debounceTimestamps[i])))
     {
       pinButton dupe = pinButtonDict[i];
-      if(dupe.pinReading > 0){
+      if(dupe.pinReading == HIGH){
         Serial.print(dupe.HW_BUTTON_ID.c_str());
+        if(dupe.button->isEnabled()){
+          Serial.print(" ENABLED ");
+        } else {
+          Serial.print(" NOT ENABLED ");
+        }
+        dupe.button->trigger();
         Serial.println(std::to_string(dupe.pinReading).c_str());
         pinButtonDict[i].clicked = false;
         screen.printFromStart(dupe.HW_BUTTON_ID.c_str());

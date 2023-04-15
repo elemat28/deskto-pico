@@ -36,10 +36,12 @@ LCDui::~LCDui()
 void LCDui::init(){
     obj.init();
     obj.backlight();
+    _backlight = true;
 }
 
 void LCDui::setBacklightEnabled(bool on){
-_backlight = on;
+  _backlight = on;
+  obj.setBacklight(on);
 
 }
 

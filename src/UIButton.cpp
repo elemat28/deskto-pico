@@ -21,6 +21,15 @@ UIButton::~UIButton(){
 
 }
 
+bool UIButton::enable(void){
+  _enabled = true;
+  return true;
+}
+
+bool UIButton::isEnabled(void){
+  return _enabled;
+}
+
 void UIButton::shouldDisplayAsValue(bool displayAsCurrentValue){
   _displayAsValue = displayAsCurrentValue;
 }
@@ -29,7 +38,7 @@ void UIButton::setValue(float* value){
   _value = value;
 }
 
-void UIButton::setCallback(void* funct_ptr){
+void UIButton::setCallback(void (*funct_ptr)()){
   _callback = funct_ptr;
 }
 
@@ -46,4 +55,12 @@ std::string UIButton::print(){
   } else {
     return _displayAs;
   }
+}
+
+void UIButton::trigger(){
+  
+  if(_enabled){
+    (*_callback)();
+  }
+  
 }
