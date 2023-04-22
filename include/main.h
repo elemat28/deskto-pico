@@ -4,10 +4,11 @@
 #include "LCDui.h"
 #include "UIButton.h"
 #include "GPIOPolling.h"
+#include "RotaryEncoder.h"
 UIButton* buttonsArray;
 LCDui screen;
+RotaryEncoder rotary;
 bool ledState;
-static int numOfUIButtons;
 struct pinButton;
 pinButton* pinDictionary;
 #endif

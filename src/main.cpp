@@ -1,11 +1,11 @@
 #include "main.h"
 alarm_pool_t* sample;
-
+absolute_time_t timeStamp;
+repeating_timer rtInst;
 struct pinButtonDeclaration {
   std::string HW_BUTTON_ID; 
   int GPIO;
 };
-
 struct pinButton{
   std::string HW_BUTTON_ID; 
   int GPIO;
@@ -14,7 +14,6 @@ struct pinButton{
   volatile bool clicked = false;
   volatile int pinReading = 0;
 };
-
 
 pinButtonDeclaration declarationDict[] = {
   {std::string("BUTTON_YELLOW"), 9},
@@ -37,13 +36,13 @@ void pinSetup(){
   pinMode(14, OUTPUT);
   pinMode(13, OUTPUT);
   //encoder
-  pinMode(12, OUTPUT); //CLICK
-  pinMode(11, OUTPUT);
-  pinMode(10, OUTPUT);
+  pinMode(12, INPUT_PULLUP); //CLICK
+  pinMode(11, INPUT);
+  pinMode(10, INPUT);
   //button
-  pinMode(9, INPUT_PULLUP); //CLICK
-  pinMode(8, INPUT_PULLUP);
-  pinMode(7, INPUT_PULLUP);
+  pinMode(9, INPUT_PULLDOWN); //CLICK
+  pinMode(8, INPUT_PULLDOWN);
+  pinMode(7, INPUT_PULLDOWN);
   //buzzer
   pinMode(6, OUTPUT);
   Serial.println("Pin setup complete!");
@@ -55,9 +54,6 @@ void defineButtons(){
     UIButtonsArray[i] = UIButton();
   }
 }
-volatile int  userdata = 0;
-int last = 0;
-repeating_timer rtInst;
 
 bool callbackFunct(repeating_timer* rt){
   pinButton* arrOf = (pinButton*)rt->user_data;
@@ -86,6 +82,15 @@ void interruptFunction(void){
   }
 }
 
+void RotaryInterrupt(void){
+  if(digitalRead(11) == digitalRead(10)){
+    rotary.turnACW();
+  } else {
+    rotary.turnCW();
+  }
+
+}
+
 void assignButtons(){
   Serial.println("Assigning buttons to GPIOs...");
   for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
@@ -101,28 +106,37 @@ void screenBacklightToggle(void){
   screen.setBacklightEnabled(!screen.isBacklightOn());
 }
 
-std::string printe;
-absolute_time_t timeStamp;
-int ledGpi = 13;
+void logEncoderValue(void){
+  Serial.println(std::to_string(rotary.getValue()).c_str());
+}
 
 void assignFunctionsToButtons(){
-  pinButton cpyOf = pinButtonDict[0];
   Serial.println("assigning functions to buttons...");
-  cpyOf.button->setCallback(&screenBacklightToggle);
-  cpyOf.button->enable();
-  pinButtonDict[0] = cpyOf;
+  //YELLOW - toggle backlight
+  pinButton YELLOW = pinButtonDict[0];
+  YELLOW.button->setCallback(&screenBacklightToggle);
+  YELLOW.button->enable();
+  pinButtonDict[0] = YELLOW;
+
+  //GREEN - Serial log encoder Val
+  pinButton GREEN = pinButtonDict[1];
+  GREEN.button->setCallback(&logEncoderValue);
+  GREEN.button->enable();
+  pinButtonDict[1] = GREEN;
   Serial.println("OK!");
 }
 
 void setupInterrupts(){
   Serial.println("attaching interrupts...");
+  //Buttons
   attachInterrupt(digitalPinToInterrupt(7), interruptFunction, CHANGE);
   attachInterrupt(digitalPinToInterrupt(8), interruptFunction, CHANGE);
   attachInterrupt(digitalPinToInterrupt(9), interruptFunction, CHANGE);
+
+  //Rotary
+  attachInterrupt(digitalPinToInterrupt(10), RotaryInterrupt, FALLING);
   Serial.println("OK!");
 }
-
-
 
 void setup() {
   Serial.println("Setup Starting...");
@@ -130,7 +144,6 @@ void setup() {
   Serial.println("Waiting for connection!");
   while(!Serial && (millis()<1500));
   pinSetup();
-  ledState = false;
   Serial.println("Connected");
   screen = LCDui(0x27);
   Serial.println("LCDui init");
@@ -143,8 +156,7 @@ void setup() {
   Serial.println("created!");
   assignFunctionsToButtons();
   createTimeout(sample, 25000,callbackFunct,(void*)pinButtonDict, (repeating_timer_t*)&rtInst);
-  printe = std::string();
-  digitalWrite(ledGpi, 1);
+  rotary = RotaryEncoder();
   timeStamp = make_timeout_time_ms(500);
   setupInterrupts();
 }
@@ -152,7 +164,7 @@ void setup() {
 
 void loop() {
   if(time_reached(timeStamp)){
-    digitalWrite(ledGpi, !digitalRead(ledGpi));
+    digitalWrite(28, !digitalRead(28));
     timeStamp = make_timeout_time_ms(500);
   }
    for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
@@ -174,7 +186,5 @@ void loop() {
         debounceTimestamps[i] = make_timeout_time_ms(pinButtonDict[i].debounceMs);
       }
     }
-  }
-
-    
+  }  
 }
