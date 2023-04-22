@@ -139,6 +139,9 @@ void setupInterrupts(){
 }
 
 void setup() {
+  float timerMins = 1;
+  Timer timer = Timer(timerMins);
+  timer.start();
   Serial.println("Setup Starting...");
   Serial.begin(9600);
   Serial.println("Waiting for connection!");
@@ -159,6 +162,7 @@ void setup() {
   rotary = RotaryEncoder();
   timeStamp = make_timeout_time_ms(500);
   setupInterrupts();
+  Serial.println(std::to_string(timer.getTimeLeftAsSeconds()).c_str());
 }
 
 
