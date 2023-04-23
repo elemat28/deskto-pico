@@ -19,12 +19,7 @@ LCDui::LCDui(int I2Caddress) : LCDui()
 {
   _i2cAdrrs = I2Caddress;
   _backlight = false;
-  Serial.println("PRELC");
-  Serial.println("postLC");
   init();
-  Serial.println("LCD");
-  
-  
 }
 
 LCDui::~LCDui()

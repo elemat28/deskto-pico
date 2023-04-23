@@ -6,6 +6,8 @@
 #include "GPIOPolling.h"
 #include "RotaryEncoder.h"
 #include "Timer.h"
+#include "Supervisor.h"
+Supervisor uiSupervisor;
 UIButton* buttonsArray;
 LCDui screen;
 RotaryEncoder rotary;

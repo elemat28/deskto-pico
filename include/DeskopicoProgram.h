@@ -1,17 +1,29 @@
 #ifndef DESKTOPRGRM_H
 #define DESKTOPRGRM_H
 #include "UIButton.h"
+
+#ifndef MAXPICOPROGRAMIDCHARS 
+#define MAXPICOPROGRAMIDCHARS 16
+#endif
 class DeskopicoProgram
 {
+  
 protected:
-  void* dataObject;
-  char programName[];
+char _programID[MAXPICOPROGRAMIDCHARS+1];
+  int _finalIDCharIndex;
+  UIButton* _buttons;
+  void* _dataObject;
+  bool _hasDataBeenPassed;
+  void* getDataPtr();
 public:
-  DeskopicoProgram(UIButton buttons[]);
-  ~DeskopicoProgram();
-  void passData(void* dataObject);
-  void run();
 
+  bool hasDataBeenPassed();
+  DeskopicoProgram(char program_name[]);
+  void pass_buttons(UIButton buttons[]);
+  void pass_data(void* dataObject);
+  virtual void run() = 0;
+  int getNumOfCharsInID();
+  
 
   
   

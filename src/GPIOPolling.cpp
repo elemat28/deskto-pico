@@ -11,6 +11,6 @@ bool createTimeout(alarm_pool_t* pool_ptr, uint64_t delay_us, repeating_timer_ca
 }
 
 alarm_pool_t* createAlarmPool(){
-  return alarm_pool_create(1,4);
+  return alarm_pool_create(1,64);
 }
 

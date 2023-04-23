@@ -1,7 +1,44 @@
 #include "main.h"
+#define ALIVEMSGFREQSECS 2
+
 alarm_pool_t* sample;
 absolute_time_t timeStamp;
 repeating_timer rtInst;
+struct AlivePacket {
+  
+  std::string message;
+  volatile bool outstandingPrint = false;
+};
+
+AlivePacket alivePacket;
+
+
+
+long int itter;
+
+volatile int data = 0;
+
+int logFunctionResult(const std::string functionMessage, int (*function_ptr)(), bool logToConsole = true){
+  if(logToConsole){
+  std::string scopeMsg = std::string("[SETUP][");
+  scopeMsg.append(functionMessage);
+  scopeMsg.append("] ");
+  std::string logMessage = scopeMsg;
+  logMessage.append("Starting...");
+  Serial.println(logMessage.c_str());
+  int result = function_ptr();
+  logMessage = scopeMsg;
+  if(result == 0){
+    logMessage.append("OK!");
+  } else {
+    logMessage.append("ERROR! %i", result);
+  }
+  Serial.println(logMessage.c_str());
+  return result;
+  } else {
+    return function_ptr();
+  }
+}
 struct pinButtonDeclaration {
   std::string HW_BUTTON_ID; 
   int GPIO;
@@ -29,8 +66,11 @@ pinButton pinButtonDict[NUM_OF_DECLARED_PIN_BUTTONS];
 
 absolute_time_t debounceTimestamps[NUM_OF_DECLARED_PIN_BUTTONS];
 
-void pinSetup(){
-  Serial.println("Pin setup...");
+void* programFunctionsDeclaration[] = {
+
+};
+
+int pinSetup(){
   //RGB led
   pinMode(15, OUTPUT);
   pinMode(14, OUTPUT);
@@ -45,7 +85,28 @@ void pinSetup(){
   pinMode(7, INPUT_PULLDOWN);
   //buzzer
   pinMode(6, OUTPUT);
-  Serial.println("Pin setup complete!");
+  return 0;
+}
+
+int ScreenSetup(){
+  screen = LCDui(0x27);
+  screen.init();
+  return 0;
+}
+
+int createUISupervisor(){
+  uiSupervisor = Supervisor();
+  return 0;
+}
+
+int finalizeSupervisor(){
+  uiSupervisor.finalize();
+  return 0;
+}
+
+int setupInitialAlarmPool(){
+  sample = createAlarmPool();
+  return 0;
 }
 
 void defineButtons(){
@@ -71,6 +132,30 @@ bool callbackFunct(repeating_timer* rt){
  
 
   
+  return true;
+}
+
+bool repeatingPrintAliveFunct(repeating_timer* rt){
+  AlivePacket* dataPtr = (AlivePacket*)(*rt).user_data;
+  
+  if((*dataPtr).outstandingPrint == false){
+    //uint32_t seconds = (to_ms_since_boot(get_absolute_time())/1000);
+    (*dataPtr).message.clear();
+    (*dataPtr).message.append("Runtime[seconds]: ");
+    (*dataPtr).message.append(std::to_string((int)(time_us_64()/(1000*1000))).c_str());
+    (*dataPtr).outstandingPrint = true;
+  } 
+  
+  //packetInstance.outstandingPrint = true;
+  //alivePacket* userData = (alivePacket*)(rt->user_data);
+  //if(!userData->outstandingPrint){
+    if(false){
+    std::string temp = std::string("Running for ");
+    temp.append(std::to_string((to_ms_since_boot(get_absolute_time())/1000)));
+    temp.append(" Seconds");
+    //userData->message.append(temp);
+    //userData->outstandingPrint = true;
+  };
   return true;
 }
 
@@ -138,40 +223,16 @@ void setupInterrupts(){
   Serial.println("OK!");
 }
 
-void setup() {
-  float timerMins = 1;
-  Timer timer = Timer(timerMins);
-  timer.start();
-  Serial.println("Setup Starting...");
-  Serial.begin(9600);
-  Serial.println("Waiting for connection!");
-  while(!Serial && (millis()<1500));
-  pinSetup();
-  Serial.println("Connected");
-  screen = LCDui(0x27);
-  Serial.println("LCDui init");
-  screen.init();
-  Serial.println("LCD SETUP complete...");
-  defineButtons();
-  assignButtons();
-    Serial.println("createAlarmPool...");
-  sample = createAlarmPool();
-  Serial.println("created!");
-  assignFunctionsToButtons();
-  createTimeout(sample, 25000,callbackFunct,(void*)pinButtonDict, (repeating_timer_t*)&rtInst);
-  rotary = RotaryEncoder();
-  timeStamp = make_timeout_time_ms(500);
-  setupInterrupts();
-  Serial.println(std::to_string(timer.getTimeLeftAsSeconds()).c_str());
+int setupAlivePrintToSerial(){
+  if(createTimeout(sample, ALIVEMSGFREQSECS*1000000, repeatingPrintAliveFunct,(void*)&alivePacket, (repeating_timer_t*)&rtInst)){
+    return 0;
+  } else {
+    return 1;
+  }
 }
 
-
-void loop() {
-  if(time_reached(timeStamp)){
-    digitalWrite(28, !digitalRead(28));
-    timeStamp = make_timeout_time_ms(500);
-  }
-   for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
+void x(){
+  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
   {
     if((pinButtonDict[i].debounceMs == 0 ) || (time_reached(debounceTimestamps[i])))
     {
@@ -191,4 +252,42 @@ void loop() {
       }
     }
   }  
+
+}
+
+void setup() {
+  alivePacket.message.reserve(64); //without this timer breaks if string has to be resized in the callback
+  
+  Serial.begin(9600);
+  logFunctionResult("Pin Setup", pinSetup);
+  logFunctionResult("I2C 1602 LCD", ScreenSetup);
+  logFunctionResult("UISupervisor init", createUISupervisor);
+  logFunctionResult("Finalize Supervisor", finalizeSupervisor);
+  logFunctionResult("Initial Alarm Pool setup", setupInitialAlarmPool);
+  //assignFunctionsToButtons();
+  
+  //createTimeout(sample, 25000,callbackFunct,(void*)pinButtonDict, (repeating_timer_t*)&rtInst);
+  //rotary = RotaryEncoder();
+  //setupUISupervisor();
+  //Serial.println(std::to_string(uiSupervisor.debugFunc()).c_str());
+  //timeStamp = make_timeout_time_ms(100);
+  
+  //setupInterrupts();
+  //Serial.println(std::to_string(timer.getTimeLeftAsSeconds()).c_str());
+  logFunctionResult("Repeating ALIVE timer activation", setupAlivePrintToSerial);
+  
+}
+
+
+void loop() {
+  while(alivePacket.outstandingPrint == false){};
+  if(alivePacket.outstandingPrint == true){
+    Serial.println(alivePacket.message.c_str());
+    alivePacket.outstandingPrint = false;
+  }
+
+ 
+  
+  
+  
 }
