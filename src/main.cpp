@@ -88,14 +88,9 @@ int pinSetup(){
   return 0;
 }
 
-int ScreenSetup(){
-  screen = LCDui(0x27);
-  screen.init();
-  return 0;
-}
-
 int createUISupervisor(){
   uiSupervisor = Supervisor();
+  
   return 0;
 }
 
@@ -112,6 +107,7 @@ int setupInitialAlarmPool(){
 void defineButtons(){
   for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
   {
+    
     UIButtonsArray[i] = UIButton();
   }
 }
@@ -186,26 +182,17 @@ void assignButtons(){
   Serial.println("Buttons to GPIOs OK");
 }
 
-void screenBacklightToggle(void){
-  Serial.println("screenToggleCallback!");
-  screen.setBacklightEnabled(!screen.isBacklightOn());
-}
-
-void logEncoderValue(void){
-  Serial.println(std::to_string(rotary.getValue()).c_str());
-}
-
 void assignFunctionsToButtons(){
   Serial.println("assigning functions to buttons...");
   //YELLOW - toggle backlight
   pinButton YELLOW = pinButtonDict[0];
-  YELLOW.button->setCallback(&screenBacklightToggle);
+  //YELLOW.button->setCallback(&screenBacklightToggle);
   YELLOW.button->enable();
   pinButtonDict[0] = YELLOW;
 
   //GREEN - Serial log encoder Val
   pinButton GREEN = pinButtonDict[1];
-  GREEN.button->setCallback(&logEncoderValue);
+  //GREEN.button->setCallback(&logEncoderValue);
   GREEN.button->enable();
   pinButtonDict[1] = GREEN;
   Serial.println("OK!");
@@ -247,7 +234,6 @@ void x(){
         dupe.button->trigger();
         Serial.println(std::to_string(dupe.pinReading).c_str());
         pinButtonDict[i].clicked = false;
-        screen.printFromStart(dupe.HW_BUTTON_ID.c_str());
         debounceTimestamps[i] = make_timeout_time_ms(pinButtonDict[i].debounceMs);
       }
     }
@@ -260,10 +246,10 @@ void setup() {
   
   Serial.begin(9600);
   logFunctionResult("Pin Setup", pinSetup);
-  logFunctionResult("I2C 1602 LCD", ScreenSetup);
+  //logFunctionResult("I2C 1602 LCD", ScreenSetup);
   logFunctionResult("UISupervisor init", createUISupervisor);
   logFunctionResult("Finalize Supervisor", finalizeSupervisor);
-  logFunctionResult("Initial Alarm Pool setup", setupInitialAlarmPool);
+  //logFunctionResult("Initial Alarm Pool setup", setupInitialAlarmPool);
   //assignFunctionsToButtons();
   
   //createTimeout(sample, 25000,callbackFunct,(void*)pinButtonDict, (repeating_timer_t*)&rtInst);

@@ -5,6 +5,13 @@
 #ifndef UISUPRVSRMAXPRGRMS
 #define UISUPRVSRMAXPRGRMS 6
 #endif
+
+
+  enum BASE_BUTTONS {
+  BUTTON_RETURN  = 0,
+  BUTTON_SELECT  = 1,
+  BUTTON_NEXT    = 2
+}; 
 class Supervisor
 {
 private:
@@ -28,9 +35,11 @@ private:
   int temp_numOfPrograms;
   int numOfPrograms;
 public:
+  static BASE_BUTTONS REQUIRED_BUTTONS;
   Supervisor();
   Supervisor(DeskopicoProgram* programs);
   ~Supervisor();
+  int setBaseButtonGPIO(BASE_BUTTONS baseButton, int GPIO);
   void add_function(DeskopicoProgram* program);
   void set_startup_program(char name[]);
   void run_program(char name[]);

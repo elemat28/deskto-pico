@@ -1,5 +1,8 @@
 #include "Supervisor.h"
 
+
+
+
 Supervisor::Supervisor(): OS_MENU(arrayOfPrograms) {
   _ver = 0.1;
   RETURN_BUTTON = UIButton();
@@ -20,6 +23,10 @@ Supervisor::~Supervisor(){
 
 }
 
+int Supervisor::setBaseButtonGPIO(BASE_BUTTONS baseButton, int GPIO){
+  return 1;
+}
+
 void Supervisor::add_function(DeskopicoProgram* program){
   if(finalized ||(temp_numOfPrograms >= UISUPRVSRMAXPRGRMS)){
     abort();
@@ -34,7 +41,7 @@ void Supervisor::set_startup_program(char name[]){
 }
 
 void Supervisor::run_program(char name[]){
-  
+
 }
 
 void Supervisor::finalize(){
