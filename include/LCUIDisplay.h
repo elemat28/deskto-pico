@@ -11,19 +11,25 @@
 class LCUIDisplay: public UIDisplayHandler {
 
 
+
   public:
   typedef struct LCI2CDisplay_t {
-  LCI2CDisplay_t(int I2Caddress, int columns, int lines);
-  int I2Caddress;
-  int columns;
-  int lines;
-} LCI2CDisplay_t;
+    LCI2CDisplay_t();
+    LCI2CDisplay_t(int I2Caddress, int columns, int lines);
+    int I2Caddress;
+    int columns;
+    int lines;
+  } LCI2CDisplay_t;
+
   static LCI2CDisplay_t DEFAULTDISPLAYCONFIG;
     LCUIDisplay();
-    LCUIDisplay(int IC2Address);
+    LCUIDisplay(LCI2CDisplay_t displayDefinition);
     void safe_output(char* data);
-  private:
+    int init();
+
+private:
     typedef LiquidCrystal_I2C obj;
+    LiquidCrystal_I2C screen;
     int _i2cAdrrs; 
     bool _backlight;
 

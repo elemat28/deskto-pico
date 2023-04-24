@@ -90,8 +90,16 @@ int pinSetup(){
 
 int createUISupervisor(){
   uiSupervisor = Supervisor();
-  
   return 0;
+}
+
+int createUIdisplay(){
+  screen = LCUIDisplay();
+  return 0;
+}
+
+int UIdisplayInit(){
+  return screen.init();
 }
 
 int finalizeSupervisor(){
@@ -124,34 +132,17 @@ bool callbackFunct(repeating_timer* rt){
     }
   }
   
-  
- 
-
-  
   return true;
 }
 
 bool repeatingPrintAliveFunct(repeating_timer* rt){
   AlivePacket* dataPtr = (AlivePacket*)(*rt).user_data;
-  
   if((*dataPtr).outstandingPrint == false){
-    //uint32_t seconds = (to_ms_since_boot(get_absolute_time())/1000);
     (*dataPtr).message.clear();
     (*dataPtr).message.append("Runtime[seconds]: ");
     (*dataPtr).message.append(std::to_string((int)(time_us_64()/(1000*1000))).c_str());
     (*dataPtr).outstandingPrint = true;
   } 
-  
-  //packetInstance.outstandingPrint = true;
-  //alivePacket* userData = (alivePacket*)(rt->user_data);
-  //if(!userData->outstandingPrint){
-    if(false){
-    std::string temp = std::string("Running for ");
-    temp.append(std::to_string((to_ms_since_boot(get_absolute_time())/1000)));
-    temp.append(" Seconds");
-    //userData->message.append(temp);
-    //userData->outstandingPrint = true;
-  };
   return true;
 }
 
@@ -247,9 +238,11 @@ void setup() {
   Serial.begin(9600);
   logFunctionResult("Pin Setup", pinSetup);
   //logFunctionResult("I2C 1602 LCD", ScreenSetup);
+  logFunctionResult("UIDisplay instantiate", createUIdisplay);
+  logFunctionResult("UIDisplay init", UIdisplayInit);
   logFunctionResult("UISupervisor init", createUISupervisor);
   logFunctionResult("Finalize Supervisor", finalizeSupervisor);
-  //logFunctionResult("Initial Alarm Pool setup", setupInitialAlarmPool);
+  logFunctionResult("Initial Alarm Pool setup", setupInitialAlarmPool);
   //assignFunctionsToButtons();
   
   //createTimeout(sample, 25000,callbackFunct,(void*)pinButtonDict, (repeating_timer_t*)&rtInst);

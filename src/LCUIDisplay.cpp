@@ -1,27 +1,41 @@
 #include "LCUIDisplay.h"
 
+LCUIDisplay::LCI2CDisplay_t LCUIDisplay::DEFAULTDISPLAYCONFIG = LCI2CDisplay_t();
+
 LCUIDisplay::LCI2CDisplay_t::LCI2CDisplay_t(int I2Caddress, int columns, int lines){
     I2Caddress = I2Caddress;
     columns = columns;
     lines = lines;
 };
 
+LCUIDisplay::LCI2CDisplay_t::LCI2CDisplay_t(){
+    I2Caddress = 0x27;
+    columns = 16;
+    lines = 2;
+};
 
 //LCI2CDisplay_t LCUIDisplay::DEFAULTDISPLAYCONFIG = LCI2CDisplay_t();
-LCUIDisplay::LCUIDisplay(): LCUIDisplay(DEFAULTLCI2CADDR){
-
-
-}
-
-
-LCUIDisplay::LCUIDisplay(int IC2Address){
+LCUIDisplay::LCUIDisplay():screen(DEFAULTDISPLAYCONFIG.I2Caddress, DEFAULTDISPLAYCONFIG.columns, DEFAULTDISPLAYCONFIG.lines){
   _backlight = false;
-  _i2cAdrrs = IC2Address; 
-  //obj()
-   
+};
 
 
-}
+LCUIDisplay::LCUIDisplay(LCI2CDisplay_t displayDefinition):LCUIDisplay(){
+  
+  
+
+
+};
 
 void LCUIDisplay::safe_output(char* data){
+  screen.clear();
+  screen.setCursor(0,0);
+  screen.print(data);
+}
+
+int LCUIDisplay::init(){
+  
+  screen.init();
+  screen.backlight();
+  return 0;
 }

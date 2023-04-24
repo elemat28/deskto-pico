@@ -16,17 +16,12 @@ char _programID[MAXPICOPROGRAMIDCHARS+1];
   bool _hasDataBeenPassed;
   void* getDataPtr();
 public:
-
   bool hasDataBeenPassed();
   DeskopicoProgram(char program_name[]);
   void pass_buttons(UIButton buttons[]);
   void pass_data(void* dataObject);
   virtual void run() = 0;
   int getNumOfCharsInID();
-  
-
-  
-  
 };
 
 

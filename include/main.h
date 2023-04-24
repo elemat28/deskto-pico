@@ -7,6 +7,7 @@
 #include "RotaryEncoder.h"
 #include "Timer.h"
 #include "Supervisor.h"
+LCUIDisplay screen;
 Supervisor uiSupervisor;
 UIButton* buttonsArray;
 RotaryEncoder rotary;
