@@ -1,6 +1,6 @@
 #ifndef UISUPRVSR_H
 #define UISUPRVSR_H
-#include "DeskopicoProgram.h"
+#include "AboutSystemInfo.h"
 #include "SupervisorMenu.h"
 #include "UIDisplayHandler.h" 
 #ifndef UISUPRVSRMAXPRGRMS
@@ -13,6 +13,8 @@
   BUTTON_SELECT  = 1,
   BUTTON_NEXT    = 2
 }; 
+
+
 class Supervisor
 {
 public:

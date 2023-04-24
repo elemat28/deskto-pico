@@ -76,11 +76,12 @@ void Supervisor::startup(){
   }
   if(_splashScrenDuringStartup){
     if(hardwareDisplay != nullptr){
-      std::string welcomeMsg = "DESKTO-PICO V";
+      std::string welcomeMsg = "Starting...";
       welcomeMsg.append(std::to_string(_ver));
       hardwareDisplay->safe_output((char*)welcomeMsg.c_str());
     };
   }
+  hardwareDisplay->clear();
 }
 
 void Supervisor::run(){
