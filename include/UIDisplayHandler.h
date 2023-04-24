@@ -15,6 +15,7 @@ class UIDisplayHandler {
   public:
     const static DISPLAY_FORMAT_T DISPLAY_FORMAT;
     virtual int init() = 0;
+    virtual void clear() = 0;
     virtual void safe_output(char* data) = 0;
   protected:
     //DISPLAY_FORMAT_T supportedFormats;

@@ -27,15 +27,19 @@ LCUIDisplay::LCUIDisplay(LCI2CDisplay_t displayDefinition):LCUIDisplay(){
 
 };
 
+int LCUIDisplay::init(){
+  screen.init();
+  screen.backlight();
+  return 0;
+};
+
+void LCUIDisplay::clear(){
+  screen.clear();
+};
+
 void LCUIDisplay::safe_output(char* data){
   screen.clear();
   screen.setCursor(0,0);
   screen.print(data);
 }
 
-int LCUIDisplay::init(){
-  
-  screen.init();
-  screen.backlight();
-  return 0;
-}

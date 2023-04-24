@@ -24,8 +24,9 @@ class LCUIDisplay: public UIDisplayHandler {
   static LCI2CDisplay_t DEFAULTDISPLAYCONFIG;
     LCUIDisplay();
     LCUIDisplay(LCI2CDisplay_t displayDefinition);
-    void safe_output(char* data);
     int init();
+    void clear();
+    void safe_output(char* data);
 
 private:
     typedef LiquidCrystal_I2C obj;

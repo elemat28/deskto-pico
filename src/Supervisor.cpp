@@ -5,6 +5,7 @@
 
 Supervisor::Supervisor(): OS_MENU(arrayOfPrograms) {
   _ver = 0.1;
+  _splashScrenDuringStartup = true;
   RETURN_BUTTON = UIButton();
   SELECT_BUTTON = UIButton();
   temp_numOfPrograms = 0;
@@ -13,6 +14,7 @@ Supervisor::Supervisor(): OS_MENU(arrayOfPrograms) {
   temp_arrayOfPrograms = {};
   arrayOfPrograms = {};
   finalized = false;
+  temp_hardwareDisplay = nullptr;
   
 }
 
@@ -36,6 +38,10 @@ void Supervisor::add_function(DeskopicoProgram* program){
 
 }
 
+void Supervisor::set_UIDisplay(UIDisplayHandler* display){
+  temp_hardwareDisplay = display;
+}
+
 void Supervisor::set_startup_program(char name[]){
 
 }
@@ -54,8 +60,26 @@ void Supervisor::finalize(){
   startupTarget = temp_startupTarget;
   if(_currentRunTarget == nullptr){
     _currentRunTarget = startupTarget;
-  }
+  };
+  if(temp_hardwareDisplay != nullptr){
+    temp_hardwareDisplay->init();
+  };
+  hardwareDisplay = temp_hardwareDisplay;
+
   finalized = true;
+  }
+}
+
+void Supervisor::startup(){
+  if(!finalized){
+    abort();
+  }
+  if(_splashScrenDuringStartup){
+    if(hardwareDisplay != nullptr){
+      std::string welcomeMsg = "DESKTO-PICO V";
+      welcomeMsg.append(std::to_string(_ver));
+      hardwareDisplay->safe_output((char*)welcomeMsg.c_str());
+    };
   }
 }
 

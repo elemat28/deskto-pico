@@ -2,6 +2,7 @@
 #define UISUPRVSR_H
 #include "DeskopicoProgram.h"
 #include "SupervisorMenu.h"
+#include "UIDisplayHandler.h" 
 #ifndef UISUPRVSRMAXPRGRMS
 #define UISUPRVSRMAXPRGRMS 6
 #endif
@@ -14,8 +15,25 @@
 }; 
 class Supervisor
 {
+public:
+  static BASE_BUTTONS REQUIRED_BUTTONS;
+  Supervisor();
+  Supervisor(DeskopicoProgram* programs);
+  ~Supervisor();
+  int setBaseButtonGPIO(BASE_BUTTONS baseButton, int GPIO);
+  void add_function(DeskopicoProgram* program);
+  void set_UIDisplay(UIDisplayHandler* display);
+  void set_startup_program(char name[]);
+  void finalize();
+  void startup();
+  void run();
+  void run_program(char name[]);
+  int debugFunc();
+  int debugFunc(void* data);
+
 private:
   float _ver;
+  bool _splashScrenDuringStartup;
   UIButton RETURN_BUTTON;
   UIButton SELECT_BUTTON;
   SupervisorMenu OS_MENU;
@@ -32,21 +50,11 @@ private:
   DeskopicoProgram* temp_arrayOfPrograms;
   DeskopicoProgram* arrayOfPrograms;
 
+  UIDisplayHandler* hardwareDisplay;
+  UIDisplayHandler* temp_hardwareDisplay;
+
   int temp_numOfPrograms;
   int numOfPrograms;
-public:
-  static BASE_BUTTONS REQUIRED_BUTTONS;
-  Supervisor();
-  Supervisor(DeskopicoProgram* programs);
-  ~Supervisor();
-  int setBaseButtonGPIO(BASE_BUTTONS baseButton, int GPIO);
-  void add_function(DeskopicoProgram* program);
-  void set_startup_program(char name[]);
-  void run_program(char name[]);
-  void finalize();
-  void run();
-  int debugFunc();
-  int debugFunc(void* data);
 };
 
 

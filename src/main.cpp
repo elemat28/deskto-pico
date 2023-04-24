@@ -98,12 +98,18 @@ int createUIdisplay(){
   return 0;
 }
 
-int UIdisplayInit(){
-  return screen.init();
+int addDisplayToSupervisor(){
+  uiSupervisor.set_UIDisplay(&screen);
+  return 0;
 }
 
 int finalizeSupervisor(){
   uiSupervisor.finalize();
+  return 0;
+}
+
+int startupSupervisor(){
+  uiSupervisor.startup();
   return 0;
 }
 
@@ -238,9 +244,9 @@ void setup() {
   Serial.begin(9600);
   logFunctionResult("Pin Setup", pinSetup);
   //logFunctionResult("I2C 1602 LCD", ScreenSetup);
-  logFunctionResult("UIDisplay instantiate", createUIdisplay);
-  logFunctionResult("UIDisplay init", UIdisplayInit);
   logFunctionResult("UISupervisor init", createUISupervisor);
+  logFunctionResult("UIDisplay instantiate", createUIdisplay);
+  logFunctionResult("Add display to supervisor", addDisplayToSupervisor);
   logFunctionResult("Finalize Supervisor", finalizeSupervisor);
   logFunctionResult("Initial Alarm Pool setup", setupInitialAlarmPool);
   //assignFunctionsToButtons();
@@ -253,6 +259,7 @@ void setup() {
   
   //setupInterrupts();
   //Serial.println(std::to_string(timer.getTimeLeftAsSeconds()).c_str());
+  logFunctionResult("Supervisor STARTUP", startupSupervisor);
   logFunctionResult("Repeating ALIVE timer activation", setupAlivePrintToSerial);
   
 }
