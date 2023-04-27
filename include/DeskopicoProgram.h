@@ -1,26 +1,38 @@
 #ifndef DESKTOPRGRM_H
 #define DESKTOPRGRM_H
-#include "UIButton.h"
+#include <UIButtonSet.h>
 
 #ifndef MAXPICOPROGRAMIDCHARS 
 #define MAXPICOPROGRAMIDCHARS 16
 #endif
-class DeskopicoProgram
+enum OUTPUT_FORMAT {
+  BASE,
+  LIST 
+};
+
+struct ProgramReturn {
+  OUTPUT_FORMAT formatOfData;
+  UIButtonSet buttonSet;
+  void* data;
+  
+};
+class DesktopicoProgram
 {
   
 protected:
-char _programID[MAXPICOPROGRAMIDCHARS+1];
+  char _programID[MAXPICOPROGRAMIDCHARS+1];
   int _finalIDCharIndex;
   UIButton* _buttons;
   void* _dataObject;
   bool _hasDataBeenPassed;
   void* getDataPtr();
+  ProgramReturn returnValue;
 public:
   bool hasDataBeenPassed();
-  DeskopicoProgram(char program_name[]);
+  DesktopicoProgram(char program_name[]);
   void pass_buttons(UIButton buttons[]);
   void pass_data(void* dataObject);
-  virtual void run() = 0;
+  virtual ProgramReturn* run(UIButtonSet* availableButtons) = 0;
   int getNumOfCharsInID();
 };
 

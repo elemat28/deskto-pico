@@ -1,5 +1,6 @@
 #ifndef UISUPRVSR_H
 #define UISUPRVSR_H
+#include "UIButtonSet.h"
 #include "AboutSystemInfo.h"
 #include "SupervisorMenu.h"
 #include "UIDisplayHandler.h" 
@@ -8,49 +9,52 @@
 #endif
 
 
-  enum BASE_BUTTONS {
-  BUTTON_RETURN  = 0,
-  BUTTON_SELECT  = 1,
-  BUTTON_NEXT    = 2
-}; 
-
 
 class Supervisor
 {
 public:
-  static BASE_BUTTONS REQUIRED_BUTTONS;
+  static UIButtonSet REQUIRED_BUTTONS;
   Supervisor();
-  Supervisor(DeskopicoProgram* programs);
+  Supervisor(DesktopicoProgram* programs);
   ~Supervisor();
-  int setBaseButtonGPIO(BASE_BUTTONS baseButton, int GPIO);
-  void add_function(DeskopicoProgram* program);
+  int setBaseButtonGPIO(DeclaredButton button, int GPIO);
+  void add_function(DesktopicoProgram* program);
   void set_UIDisplay(UIDisplayHandler* display);
   void set_startup_program(char name[]);
   void finalize();
   void startup();
   void run();
+  bool hasWork();
+  bool peekhasWork();
   void run_program(char name[]);
   int debugFunc();
   int debugFunc(void* data);
+  static void GPIOInterruptHandler_RETURN();
+  static void GPIOInterruptHandler_SELECT();
+  static void GPIOInterruptHandler_NEXT();
 
 private:
   float _ver;
   bool _splashScrenDuringStartup;
-  UIButton RETURN_BUTTON;
-  UIButton SELECT_BUTTON;
+  volatile bool _pendingButton;
+  volatile int _pressedIndex;
+  bool _pendingScreenRefresh;
+  void _trigger_return();
+  void _trigger_select();
+  void _trigger_next();
   SupervisorMenu OS_MENU;
-  DeskopicoProgram* _currentRunTarget;
+  DesktopicoProgram* _currentRunTarget;
   bool finalized;
   UIButton _assignableButtons;
   //DeskopicoProgram _programs[1];
   UIButton _virtualButtons;
-  DeskopicoProgram* programDeclarations[UISUPRVSRMAXPRGRMS];
+  DesktopicoProgram* programDeclarations[UISUPRVSRMAXPRGRMS];
 
-  DeskopicoProgram* temp_startupTarget;
-  DeskopicoProgram* startupTarget;
+  DesktopicoProgram* temp_startupTarget;
+  DesktopicoProgram* startupTarget;
 
-  DeskopicoProgram* temp_arrayOfPrograms;
-  DeskopicoProgram* arrayOfPrograms;
+  DesktopicoProgram* temp_arrayOfPrograms;
+  DesktopicoProgram* arrayOfPrograms;
 
   UIDisplayHandler* hardwareDisplay;
   UIDisplayHandler* temp_hardwareDisplay;

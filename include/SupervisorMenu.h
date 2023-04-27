@@ -1,14 +1,17 @@
 #ifndef UISUPRVSRMNU_H
 #define UISUPRVSRMNU_H
 #include "DeskopicoProgram.h"
-class SupervisorMenu: public DeskopicoProgram
+class SupervisorMenu: public DesktopicoProgram
 {
 public:
-  SupervisorMenu(DeskopicoProgram* programs);
-  SupervisorMenu(const DeskopicoProgram* programs): SupervisorMenu((DeskopicoProgram*)programs){};
+  SupervisorMenu(DesktopicoProgram* programs);
+  SupervisorMenu(const DesktopicoProgram* programs): SupervisorMenu((DesktopicoProgram*)programs){};
   ~SupervisorMenu();
-  void run();
-
+ ProgramReturn* run(UIButtonSet* availableButtons);
+  void set_value();
+  void clear_value();
+private:
+  std::string message;
 
   
   

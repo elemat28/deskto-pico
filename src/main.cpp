@@ -12,7 +12,7 @@ struct AlivePacket {
 
 AlivePacket alivePacket;
 
-
+bool button_pressed = false;
 
 long int itter;
 
@@ -112,6 +112,12 @@ int startupSupervisor(){
   uiSupervisor.startup();
   return 0;
 }
+int attachSupervisorInterrupts(){
+  attachInterrupt(digitalPinToInterrupt(9), Supervisor::GPIOInterruptHandler_RETURN, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(8), Supervisor::GPIOInterruptHandler_SELECT, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(7), Supervisor::GPIOInterruptHandler_NEXT, CHANGE);
+  return 0;
+}
 
 int setupInitialAlarmPool(){
   sample = createAlarmPool();
@@ -195,6 +201,8 @@ void assignFunctionsToButtons(){
   Serial.println("OK!");
 }
 
+
+
 void setupInterrupts(){
   Serial.println("attaching interrupts...");
   //Buttons
@@ -238,6 +246,21 @@ void x(){
 
 }
 
+void Supervisor::GPIOInterruptHandler_RETURN(){
+  button_pressed = true;
+  uiSupervisor._trigger_return();
+}
+
+void Supervisor::GPIOInterruptHandler_SELECT(){
+  button_pressed = true;
+  uiSupervisor._trigger_select();
+}
+
+void Supervisor::GPIOInterruptHandler_NEXT(){
+  button_pressed = true;
+  uiSupervisor._trigger_next();
+}
+
 void setup() {
   alivePacket.message.reserve(64); //without this timer breaks if string has to be resized in the callback
   
@@ -261,16 +284,22 @@ void setup() {
   //Serial.println(std::to_string(timer.getTimeLeftAsSeconds()).c_str());
   logFunctionResult("Supervisor STARTUP", startupSupervisor);
   logFunctionResult("Repeating ALIVE timer activation", setupAlivePrintToSerial);
+  logFunctionResult("Attach Supervisor interrupt", attachSupervisorInterrupts);
+  
   
 }
 
 
+
 void loop() {
-  while(alivePacket.outstandingPrint == false){};
+  
+ 
+  while(!alivePacket.outstandingPrint && !uiSupervisor.peekhasWork()){};
   if(alivePacket.outstandingPrint == true){
     Serial.println(alivePacket.message.c_str());
     alivePacket.outstandingPrint = false;
   }
+  uiSupervisor.run();
 
  
   

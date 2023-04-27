@@ -1,14 +1,14 @@
 #ifndef UISYSINFO_H
 #define UISYSINFO_H
 #include "DeskopicoProgram.h"
-#include <map>
 
-class AboutSystemInfo: public DeskopicoProgram
+
+class AboutSystemInfo: public DesktopicoProgram
 {
 public:
   AboutSystemInfo();
   static char name[];
-  void run();
+  ProgramReturn* run(UIButtonSet* availableButtons);
   std::map<std::string, std::string> systemDetails;
 private:
 };

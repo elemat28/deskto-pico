@@ -17,6 +17,7 @@ class UIDisplayHandler {
     virtual int init() = 0;
     virtual void clear() = 0;
     virtual void safe_output(char* data) = 0;
+    void safe_output(const char* data);
   protected:
     //DISPLAY_FORMAT_T supportedFormats;
     int declare_supported_formats(DISPLAY_FORMAT_T formatArray[]);

@@ -1,18 +1,11 @@
 #include "AboutSystemInfo.h"
 char AboutSystemInfo::name[] = "SYS_INFO";
-AboutSystemInfo::AboutSystemInfo():DeskopicoProgram(name) {
+AboutSystemInfo::AboutSystemInfo():DesktopicoProgram(name) {
 
 }
 
 
 
-void AboutSystemInfo::run(){
-  
-  if(hasDataBeenPassed()){
-    *((int*)getDataPtr()) += 1;
-  }
-  
-}
 
 
 

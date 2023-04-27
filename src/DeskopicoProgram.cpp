@@ -1,14 +1,14 @@
 #include "DeskopicoProgram.h"
 
-bool DeskopicoProgram::hasDataBeenPassed(){
+bool DesktopicoProgram::hasDataBeenPassed(){
   return _hasDataBeenPassed;
 }
 
-void* DeskopicoProgram::getDataPtr(){
+void* DesktopicoProgram::getDataPtr(){
   return _dataObject;
 }
 
-DeskopicoProgram::DeskopicoProgram(char program_name[]){
+DesktopicoProgram::DesktopicoProgram(char program_name[]){
   _finalIDCharIndex = 0;
   _hasDataBeenPassed = false;
   while((_finalIDCharIndex < MAXPICOPROGRAMIDCHARS) && (program_name[_finalIDCharIndex] != '\0')){
@@ -18,14 +18,14 @@ DeskopicoProgram::DeskopicoProgram(char program_name[]){
     _programID[_finalIDCharIndex] = '\0';
 }
    
-void DeskopicoProgram::pass_buttons(UIButton buttons[]){
+void DesktopicoProgram::pass_buttons(UIButton buttons[]){
   _buttons = buttons;
 }
 
-void DeskopicoProgram::pass_data(void* dataObject){
+void DesktopicoProgram::pass_data(void* dataObject){
   _dataObject = dataObject;
   _hasDataBeenPassed = true;
 }
-int DeskopicoProgram::getNumOfCharsInID(){
+int DesktopicoProgram::getNumOfCharsInID(){
   return _finalIDCharIndex;
 }

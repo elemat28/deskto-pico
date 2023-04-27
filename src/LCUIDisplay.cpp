@@ -43,3 +43,7 @@ void LCUIDisplay::safe_output(char* data){
   screen.print(data);
 }
 
+void LCUIDisplay::safe_output(const char* data){
+  safe_output((char*)data);
+}
+

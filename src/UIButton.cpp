@@ -2,7 +2,7 @@
 
 
 UIButton::UIButton(){
-  _enabled = false;
+  _enabled = true;
   _displayAsValue = false;
 
 }

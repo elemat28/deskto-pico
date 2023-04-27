@@ -5,9 +5,8 @@
 
 Supervisor::Supervisor(): OS_MENU(arrayOfPrograms) {
   _ver = 0.1;
+  
   _splashScrenDuringStartup = true;
-  RETURN_BUTTON = UIButton();
-  SELECT_BUTTON = UIButton();
   temp_numOfPrograms = 0;
   _currentRunTarget = nullptr;
   temp_startupTarget = nullptr;
@@ -15,21 +14,39 @@ Supervisor::Supervisor(): OS_MENU(arrayOfPrograms) {
   arrayOfPrograms = {};
   finalized = false;
   temp_hardwareDisplay = nullptr;
-  
+  _pendingButton = false;
+  _pendingScreenRefresh = false;
+  typedef void(*x)(void);
+  REQUIRED_BUTTONS = UIButtonSet();
+  UIButton temp_SELECT  = REQUIRED_BUTTONS.SELECT.second;
+  UIButton temp_RETURN  = REQUIRED_BUTTONS.RETURN.second;
+  UIButton temp_NEXT    = REQUIRED_BUTTONS.NEXT.second;
+  temp_SELECT .setCallback((x)&Supervisor::_trigger_select);
+  temp_RETURN .setCallback((x)&Supervisor::_trigger_return);
+  temp_NEXT   .setCallback((x)&Supervisor::_trigger_next);
+  std::string SELECT_id = REQUIRED_BUTTONS.SELECT.first;
+  std::string RETURN_id = REQUIRED_BUTTONS.RETURN.first;
+  std::string NEXT_id   = REQUIRED_BUTTONS.NEXT.first;
+  DeclaredButton newSelect = DeclaredButton(SELECT_id, temp_SELECT);
+  DeclaredButton newReturn = DeclaredButton(RETURN_id, temp_RETURN);
+  DeclaredButton newNext   = DeclaredButton(NEXT_id, temp_NEXT);
+  REQUIRED_BUTTONS.SELECT .swap(newSelect);
+  REQUIRED_BUTTONS.RETURN .swap(newReturn);
+  REQUIRED_BUTTONS.NEXT   .swap(newNext);
 }
 
-Supervisor::Supervisor(DeskopicoProgram* programs): Supervisor(){
+Supervisor::Supervisor(DesktopicoProgram* programs): Supervisor(){
 }
 
 Supervisor::~Supervisor(){
 
 }
 
-int Supervisor::setBaseButtonGPIO(BASE_BUTTONS baseButton, int GPIO){
+int Supervisor::setBaseButtonGPIO(DeclaredButton button, int GPIO){
   return 1;
 }
 
-void Supervisor::add_function(DeskopicoProgram* program){
+void Supervisor::add_function(DesktopicoProgram* program){
   if(finalized ||(temp_numOfPrograms >= UISUPRVSRMAXPRGRMS)){
     abort();
   }
@@ -79,15 +96,65 @@ void Supervisor::startup(){
       std::string welcomeMsg = "Starting...";
       welcomeMsg.append(std::to_string(_ver));
       hardwareDisplay->safe_output((char*)welcomeMsg.c_str());
+      
     };
   }
   hardwareDisplay->clear();
+  //hardwareDisplay->safe_output((char*)REQUIRED_BUTTONS.NEXT.first.c_str());
+  
 }
 
 void Supervisor::run(){
-  _currentRunTarget->run();
-
+  ProgramReturn* returnval =  _currentRunTarget->run((UIButtonSet*)nullptr);
+  if(hasWork()){
+    if(_pressedIndex == 0){
+      hardwareDisplay->safe_output( (char*)(REQUIRED_BUTTONS.RETURN.first.c_str()));
+      //returnval->buttonSet.RETURN.second.trigger();
+    }else if(_pressedIndex == 1){
+      hardwareDisplay->safe_output( (char*)(REQUIRED_BUTTONS.SELECT.first.c_str()));
+      //returnval->buttonSet.SELECT.second.trigger();
+    }else if(_pressedIndex == 2){
+      hardwareDisplay->safe_output( (char*)(REQUIRED_BUTTONS.NEXT.first.c_str()));
+      //returnval->buttonSet.NEXT.second.trigger();
+    }
+    
+    //hardwareDisplay->safe_output(((std::string*)returnval->data)->c_str());
+    
+  }
   
+  
+}
+
+bool Supervisor::hasWork(){
+  bool checkresult = false;
+  if (_pendingButton){
+    checkresult = true;
+    _pendingButton = false;
+  }
+  if(_pendingScreenRefresh){
+    checkresult = true;
+    _pendingScreenRefresh = false;
+  }
+  return checkresult;
+}
+
+bool Supervisor::peekhasWork(){
+  return (_pendingButton || _pendingScreenRefresh);
+}
+
+void Supervisor::_trigger_return(){
+  _pendingButton = true;
+  _pressedIndex = 0;
+}
+
+void Supervisor::_trigger_select(){
+  _pendingButton = true;
+  _pressedIndex = 1;
+}
+
+void Supervisor::_trigger_next(){
+  _pendingButton = true;
+  _pressedIndex = 2;
 }
 
 int Supervisor::debugFunc(){
