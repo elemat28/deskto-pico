@@ -3,7 +3,7 @@
 
 
 
-Supervisor::Supervisor(): OS_MENU(arrayOfPrograms) {
+Supervisor::Supervisor(): OS_MENU() {
   _ver = 0.1;
   
   _splashScrenDuringStartup = true;
@@ -107,8 +107,8 @@ void Supervisor::run(){
       _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
     }
   }
-  hardwareDisplay->output_auto(returnedOutput);
-  //hardwareDisplay->safe_output((( std::string*)returnedOutput->data)->c_str());
+  //hardwareDisplay->output_auto(returnedOutput);
+  hardwareDisplay->safe_output((( std::string*)returnedOutput->data)->c_str());
   
 }
 

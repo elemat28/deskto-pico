@@ -20,7 +20,7 @@ enum OUTPUT_FORMAT {
 };
 typedef std::vector<OUTPUT_FORMAT> SUPPORTED_FORMATS;
 struct ProgramReturn {
-  std::string* PROGRAM_ID;
+  std::string PROGRAM_ID;
   OUTPUT_FORMAT volatile formatOfData;
   SUPPORTED_FORMATS* FORMAT_PREFERENCE;
   UIButtonSet* volatile buttonSet;
@@ -51,22 +51,23 @@ protected:
   bool _hasDataBeenPassed;
   void* getDataPtr();
   ProgramReturn returnValue;
-  void setID(std::string programID);
+  //void setID(std::string programID);
 
 public:
   SUPPORTED_FORMATS FORMAT_PRIORITY;
   UIButtonSet  ProgramDefinedButtons;
   bool hasDataBeenPassed();
-  DesktopicoProgram(char program_name[]);
+  DesktopicoProgram(std::string program_ID);
+  //DesktopicoProgram(std::string program_ID);
   void pass_buttons(UIButton buttons[]);
   void pass_data(void* dataObject);
   virtual ProgramReturn* run(UIButtonSet* availableButtons) = 0;
   int getNumOfCharsInID();
   std::string getID();
   std::string* getID_ptr();
-
+  static std::string ID;
 private:
-  std::string ID;
+ 
 };
 
 

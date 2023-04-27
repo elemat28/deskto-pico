@@ -1,11 +1,10 @@
 #include "SupervisorMenu.h"
-char name[] = "OS_MENU";
-SupervisorMenu::SupervisorMenu(DesktopicoProgram* programs): DesktopicoProgram(name) {
+std::string SupervisorMenu::ID("OS_MENU");
+SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID) {
   FORMAT_PRIORITY = {LIST_OPTIONS_INDEXED, LIST_OPTIONS_SIMPLE, HEADING_LIST};
   ProgramDefinedButtons = UIButtonSet();
-  setID("OS_MENU");
   //clear_value();
-  returnValue.PROGRAM_ID = getID_ptr();
+  returnValue.PROGRAM_ID = ID;
   returnValue.data = &message;
   returnValue.buttonSet = &ProgramDefinedButtons;
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
@@ -42,19 +41,20 @@ ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
   
 }
 
-void SupervisorMenu::set_value(){
-  ProgramDefinedButtons.NEXT.setID("CUSTOM");
-  //message = std::string("HELLO");
-}
-
 void SupervisorMenu::clear_value(){
-  ProgramDefinedButtons.NEXT.setID("X");
+  message.clear();
+  //ProgramDefinedButtons.NEXT.setID("X");
   //message = std::string("");
 }
 
+
+void SupervisorMenu::set_value(){
+  message = std::string("ACCEPT!");
+}
+
+
 void SupervisorMenu::set_str(){
   message = std::string("HELLO!");
-  returnValue.data = &message;
 }
 
 

@@ -8,15 +8,10 @@ void* DesktopicoProgram::getDataPtr(){
   return _dataObject;
 }
 
-DesktopicoProgram::DesktopicoProgram(char program_name[]){
-  ID = program_name;
-  _finalIDCharIndex = 0;
+DesktopicoProgram::DesktopicoProgram(std::string program_ID){
+  //ID = program_ID;
   _hasDataBeenPassed = false;
-  while((_finalIDCharIndex < MAXPICOPROGRAMIDCHARS) && (program_name[_finalIDCharIndex] != '\0')){
-      _programID[_finalIDCharIndex] = program_name[_finalIDCharIndex];
-      _finalIDCharIndex++;
-    };
-    _programID[_finalIDCharIndex] = '\0';
+
 }
    
 void DesktopicoProgram::pass_buttons(UIButton buttons[]){
@@ -32,15 +27,7 @@ int DesktopicoProgram::getNumOfCharsInID(){
 }
 
 
-  void DesktopicoProgram::setID(std::string programID){
-    ID = programID;
-
-  };
-
 std::string DesktopicoProgram::getID(){
   return ID;
 };
 
-std::string* DesktopicoProgram::getID_ptr(){
-  return &ID;
-};

@@ -51,21 +51,22 @@ void LCUIDisplay::clear(){
   screen.clear();
 };
 
-void LCUIDisplay::output_auto(ProgramReturn* programOtput){
+void LCUIDisplay::output_auto(ProgramReturn* programOutput){
   int result = 0;
   //OUTPUT_FORMAT* negotiate;
   //OUTPUT_FORMAT resolve;
   std::string name = "DUUPA4";
-  if(programOtput->formatOfData == U_DEF){
+  if(programOutput->formatOfData == U_DEF){
     result = 5;
     
     
   }
-  *programOtput->PROGRAM_ID->c_str();
+ 
+ 
   //std::string promo = std::string("");
   
   //promo.append(std::to_string(result));
-  safe_output(programOtput->PROGRAM_ID->c_str());
+  safe_output(programOutput->PROGRAM_ID.c_str());
 };
 
 void LCUIDisplay::safe_output(char* data){
