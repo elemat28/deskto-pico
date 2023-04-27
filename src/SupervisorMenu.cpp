@@ -1,19 +1,28 @@
 #include "SupervisorMenu.h"
 char name[] = "OS_MENU";
 SupervisorMenu::SupervisorMenu(DesktopicoProgram* programs): DesktopicoProgram(name) {
-  typedef void(*x)();
-  clear_value();
+
+  ProgramDefinedButtons = UIButtonSet();
+  //clear_value();
   returnValue.data = &message;
-  UIButton RET = returnValue.buttonSet.RETURN.second;
-  std::string RET_id = returnValue.buttonSet.RETURN.first;
-  UIButton SEL = returnValue.buttonSet.SELECT.second;
-  std::string SEL_id = returnValue.buttonSet.SELECT.first;
-  RET.setCallback((x)&SupervisorMenu::set_value);
-  SEL.setCallback((x)&SupervisorMenu::clear_value);
-  DeclaredButton newReturn = DeclaredButton(RET_id, RET);
-  DeclaredButton newSelect = DeclaredButton(SEL_id, SEL);
-  returnValue.buttonSet.RETURN.swap(newReturn);
-  returnValue.buttonSet.SELECT.swap(newSelect);
+  returnValue.buttonSet = &ProgramDefinedButtons;
+  return_button_funct = std::bind(&SupervisorMenu::clear_value, this);
+  select_button_funct = std::bind(&SupervisorMenu::set_value, this);
+  next_button_funct = std::bind(&SupervisorMenu::set_str, this);
+  UIButton temp;
+
+  temp = ProgramDefinedButtons.RETURN;
+  temp.setCallbackFunction(return_button_funct);
+  ProgramDefinedButtons.RETURN = temp;
+
+  temp = ProgramDefinedButtons.SELECT;
+  temp.setCallbackFunction(select_button_funct);
+  ProgramDefinedButtons.SELECT = temp;
+
+  temp = ProgramDefinedButtons.NEXT;
+  temp.setCallbackFunction(next_button_funct);
+  ProgramDefinedButtons.NEXT = temp;
+
 }
 
 
@@ -29,11 +38,18 @@ ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
 }
 
 void SupervisorMenu::set_value(){
-  message = std::string("HELLO");
+  ProgramDefinedButtons.NEXT.setID("CUSTOM");
+  //message = std::string("HELLO");
 }
 
 void SupervisorMenu::clear_value(){
-  message = std::string("");
+  ProgramDefinedButtons.NEXT.setID("X");
+  //message = std::string("");
+}
+
+void SupervisorMenu::set_str(){
+  message = std::string("HELLO!");
+  returnValue.data = &message;
 }
 
 

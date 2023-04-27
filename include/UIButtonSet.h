@@ -4,18 +4,23 @@
 #include <map>
 
 
-typedef std::pair<std::string, UIButton> DeclaredButton;
 struct UIButtonSet
 {
-  static DeclaredButton RETURN;
-  static DeclaredButton SELECT;
-  static DeclaredButton NEXT;
+  UIButton RETURN;
+  UIButton SELECT;
+  UIButton NEXT;
+  UIButtonSet(){
+    RETURN = UIButton("OS_RETURN");
+    SELECT = UIButton("OS_SELECT");
+    NEXT   = UIButton("OS_NEXT");
+  }
 };
 
 struct fullSet: UIButtonSet {
-  static DeclaredButton PREVIOUS;
+  UIButton PREVIOUS;
 };
 
+static UIButtonSet BASE_SET;
 
 
 #endif

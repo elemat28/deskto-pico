@@ -1,5 +1,8 @@
 #include "UIButton.h"
 
+void UIButton::setID(std::string ID){
+  _ID = ID;
+}
 
 UIButton::UIButton(){
   _enabled = true;
@@ -7,9 +10,9 @@ UIButton::UIButton(){
 
 }
 
-UIButton::UIButton(std::string label){
-  _displayAsValue = false;
-  _displayAs = label;
+UIButton::UIButton(std::string ID): UIButton(){
+  _displayAs = ID;
+  _ID = ID;
 }
 
 UIButton::UIButton(float* value){
@@ -20,6 +23,11 @@ UIButton::UIButton(float* value){
 UIButton::~UIButton(){
 
 }
+
+std::string UIButton::get_ID(){
+  return _ID;
+}
+
 
 bool UIButton::enable(void){
   _enabled = true;
@@ -38,9 +46,14 @@ void UIButton::setValue(float* value){
   _value = value;
 }
 
-void UIButton::setCallback(void (*funct_ptr)()){
+void UIButton::setCallback(void (*funct_ptr)(), void* target){
   _callback = funct_ptr;
 }
+
+void UIButton::setCallbackFunction(std::function<void()> callbackFunction){
+  functionPointer = callbackFunction;
+}
+
 
 void UIButton::setDisplayAs(std::string newLabel){
   _displayAs = newLabel;
@@ -63,4 +76,11 @@ void UIButton::trigger(){
     (*_callback)();
   }
   
+}
+
+void UIButton::trigger_function(){
+  
+  if(_enabled){
+    functionPointer();
+  }
 }

@@ -10,6 +10,7 @@ public:
  ProgramReturn* run(UIButtonSet* availableButtons);
   void set_value();
   void clear_value();
+  void set_str();
 private:
   std::string message;
 

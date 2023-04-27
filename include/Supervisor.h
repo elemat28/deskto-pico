@@ -13,11 +13,11 @@
 class Supervisor
 {
 public:
-  static UIButtonSet REQUIRED_BUTTONS;
+  UIButtonSet REQUIRED_BUTTONS;
   Supervisor();
   Supervisor(DesktopicoProgram* programs);
   ~Supervisor();
-  int setBaseButtonGPIO(DeclaredButton button, int GPIO);
+  int setBaseButtonGPIO(UIButton button, int GPIO);
   void add_function(DesktopicoProgram* program);
   void set_UIDisplay(UIDisplayHandler* display);
   void set_startup_program(char name[]);
@@ -44,6 +44,7 @@ private:
   void _trigger_next();
   SupervisorMenu OS_MENU;
   DesktopicoProgram* _currentRunTarget;
+  ProgramReturn* volatile returnedOutput;
   bool finalized;
   UIButton _assignableButtons;
   //DeskopicoProgram _programs[1];

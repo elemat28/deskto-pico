@@ -16,23 +16,13 @@ Supervisor::Supervisor(): OS_MENU(arrayOfPrograms) {
   temp_hardwareDisplay = nullptr;
   _pendingButton = false;
   _pendingScreenRefresh = false;
-  typedef void(*x)(void);
   REQUIRED_BUTTONS = UIButtonSet();
-  UIButton temp_SELECT  = REQUIRED_BUTTONS.SELECT.second;
-  UIButton temp_RETURN  = REQUIRED_BUTTONS.RETURN.second;
-  UIButton temp_NEXT    = REQUIRED_BUTTONS.NEXT.second;
-  temp_SELECT .setCallback((x)&Supervisor::_trigger_select);
-  temp_RETURN .setCallback((x)&Supervisor::_trigger_return);
-  temp_NEXT   .setCallback((x)&Supervisor::_trigger_next);
-  std::string SELECT_id = REQUIRED_BUTTONS.SELECT.first;
-  std::string RETURN_id = REQUIRED_BUTTONS.RETURN.first;
-  std::string NEXT_id   = REQUIRED_BUTTONS.NEXT.first;
-  DeclaredButton newSelect = DeclaredButton(SELECT_id, temp_SELECT);
-  DeclaredButton newReturn = DeclaredButton(RETURN_id, temp_RETURN);
-  DeclaredButton newNext   = DeclaredButton(NEXT_id, temp_NEXT);
-  REQUIRED_BUTTONS.SELECT .swap(newSelect);
-  REQUIRED_BUTTONS.RETURN .swap(newReturn);
-  REQUIRED_BUTTONS.NEXT   .swap(newNext);
+  std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
+  std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
+  std::function<void(void)> next_button_funct = std::bind(&Supervisor::_trigger_next, this);
+ REQUIRED_BUTTONS.RETURN.setCallbackFunction(return_button_funct);
+ REQUIRED_BUTTONS.SELECT.setCallbackFunction(select_button_funct);
+ REQUIRED_BUTTONS.NEXT.setCallbackFunction(next_button_funct);
 }
 
 Supervisor::Supervisor(DesktopicoProgram* programs): Supervisor(){
@@ -42,7 +32,7 @@ Supervisor::~Supervisor(){
 
 }
 
-int Supervisor::setBaseButtonGPIO(DeclaredButton button, int GPIO){
+int Supervisor::setBaseButtonGPIO(UIButton button, int GPIO){
   return 1;
 }
 
@@ -105,18 +95,27 @@ void Supervisor::startup(){
 }
 
 void Supervisor::run(){
-  ProgramReturn* returnval =  _currentRunTarget->run((UIButtonSet*)nullptr);
+  
+  returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
   if(hasWork()){
     if(_pressedIndex == 0){
-      hardwareDisplay->safe_output( (char*)(REQUIRED_BUTTONS.RETURN.first.c_str()));
-      //returnval->buttonSet.RETURN.second.trigger();
+      //hardwareDisplay->safe_output( (char*)REQUIRED_BUTTONS.RETURN.get_ID().c_str());
+      _currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
+      //returnedOutput->buttonSet->RETURN.trigger_function();
+      hardwareDisplay->safe_output(returnedOutput->buttonSet->NEXT.get_ID().c_str());   
+      //hardwareDisplay->safe_output(_currentRunTarget->ProgramDefinedButtons.NEXT.get_ID().c_str());
     }else if(_pressedIndex == 1){
-      hardwareDisplay->safe_output( (char*)(REQUIRED_BUTTONS.SELECT.first.c_str()));
-      //returnval->buttonSet.SELECT.second.trigger();
+      _currentRunTarget->ProgramDefinedButtons.SELECT.trigger_function();
+      hardwareDisplay->safe_output(returnedOutput->buttonSet->NEXT.get_ID().c_str());      
     }else if(_pressedIndex == 2){
-      hardwareDisplay->safe_output( (char*)(REQUIRED_BUTTONS.NEXT.first.c_str()));
-      //returnval->buttonSet.NEXT.second.trigger();
+      _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
+      std::string local =   *( std::string*)returnedOutput->data;
+      hardwareDisplay->safe_output(local.c_str());
+      //hardwareDisplay->safe_output(_currentRunTarget->ProgramDefinedButtons.NEXT.get_ID().c_str());  
+      
     }
+
+    //hardwareDisplay->safe_output(_currentRunTarget->ProgramDefinedButtons.NEXT.get_ID().c_str());
     
     //hardwareDisplay->safe_output(((std::string*)returnval->data)->c_str());
     

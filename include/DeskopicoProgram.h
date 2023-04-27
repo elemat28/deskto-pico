@@ -11,23 +11,27 @@ enum OUTPUT_FORMAT {
 };
 
 struct ProgramReturn {
-  OUTPUT_FORMAT formatOfData;
-  UIButtonSet buttonSet;
-  void* data;
+  OUTPUT_FORMAT volatile formatOfData;
+  UIButtonSet* volatile buttonSet;
+  void* volatile data;
   
 };
 class DesktopicoProgram
 {
   
 protected:
+  std::function<void(void)> return_button_funct;
+  std::function<void(void)> select_button_funct;
+  std::function<void(void)> next_button_funct;
   char _programID[MAXPICOPROGRAMIDCHARS+1];
   int _finalIDCharIndex;
   UIButton* _buttons;
   void* _dataObject;
   bool _hasDataBeenPassed;
   void* getDataPtr();
-  ProgramReturn returnValue;
+  ProgramReturn  returnValue;
 public:
+  UIButtonSet  ProgramDefinedButtons;
   bool hasDataBeenPassed();
   DesktopicoProgram(char program_name[]);
   void pass_buttons(UIButton buttons[]);
