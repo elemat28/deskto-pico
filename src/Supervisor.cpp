@@ -97,30 +97,18 @@ void Supervisor::startup(){
 void Supervisor::run(){
   
   returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
-  if(hasWork()){
+  if(_pendingButton){
+    _pendingButton = false;
     if(_pressedIndex == 0){
-      //hardwareDisplay->safe_output( (char*)REQUIRED_BUTTONS.RETURN.get_ID().c_str());
       _currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
-      //returnedOutput->buttonSet->RETURN.trigger_function();
-      hardwareDisplay->safe_output(returnedOutput->buttonSet->NEXT.get_ID().c_str());   
-      //hardwareDisplay->safe_output(_currentRunTarget->ProgramDefinedButtons.NEXT.get_ID().c_str());
     }else if(_pressedIndex == 1){
       _currentRunTarget->ProgramDefinedButtons.SELECT.trigger_function();
-      hardwareDisplay->safe_output(returnedOutput->buttonSet->NEXT.get_ID().c_str());      
     }else if(_pressedIndex == 2){
       _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
-      std::string local =   *( std::string*)returnedOutput->data;
-      hardwareDisplay->safe_output(local.c_str());
-      //hardwareDisplay->safe_output(_currentRunTarget->ProgramDefinedButtons.NEXT.get_ID().c_str());  
-      
     }
-
-    //hardwareDisplay->safe_output(_currentRunTarget->ProgramDefinedButtons.NEXT.get_ID().c_str());
-    
-    //hardwareDisplay->safe_output(((std::string*)returnval->data)->c_str());
-    
   }
-  
+  hardwareDisplay->output_auto(returnedOutput);
+  //hardwareDisplay->safe_output((( std::string*)returnedOutput->data)->c_str());
   
 }
 

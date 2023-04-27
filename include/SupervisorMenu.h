@@ -4,6 +4,7 @@
 class SupervisorMenu: public DesktopicoProgram
 {
 public:
+  
   SupervisorMenu(DesktopicoProgram* programs);
   SupervisorMenu(const DesktopicoProgram* programs): SupervisorMenu((DesktopicoProgram*)programs){};
   ~SupervisorMenu();

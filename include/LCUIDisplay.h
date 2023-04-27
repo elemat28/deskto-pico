@@ -13,6 +13,7 @@ class LCUIDisplay: public UIDisplayHandler {
 
 
   public:
+ static SUPPORTED_FORMATS DISPLAY_FORMATS;
   typedef struct LCI2CDisplay_t {
     LCI2CDisplay_t();
     LCI2CDisplay_t(int I2Caddress, int columns, int lines);
@@ -28,6 +29,9 @@ class LCUIDisplay: public UIDisplayHandler {
     void clear();
     void safe_output(char* data);
     void safe_output(const char* data);
+    void output_auto(ProgramReturn* programOtput);
+protected:
+    void output(ProgramReturn*);
 
 private:
     typedef LiquidCrystal_I2C obj;

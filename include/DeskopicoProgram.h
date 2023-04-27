@@ -1,25 +1,46 @@
 #ifndef DESKTOPRGRM_H
 #define DESKTOPRGRM_H
 #include <UIButtonSet.h>
-
+#include <vector>
 #ifndef MAXPICOPROGRAMIDCHARS 
 #define MAXPICOPROGRAMIDCHARS 16
 #endif
 enum OUTPUT_FORMAT {
+  U_DEF,
   BASE,
-  LIST 
+  OPTION_BOOLEAN,
+  LIST_OPTIONS_SIMPLE,
+  LIST_OPTIONS_INDEXED,
+  KEY_VALUE_LIST_SIMPLE,
+  KEY_VALUE_LIST_INDEXED,
+  KEY_OPTION_SCROLL,
+  KEY_OPTION_GRANULAR,
+  OPTION_BUTTONS,
+  HEADING_LIST
 };
-
+typedef std::vector<OUTPUT_FORMAT> SUPPORTED_FORMATS;
 struct ProgramReturn {
+  std::string* PROGRAM_ID;
   OUTPUT_FORMAT volatile formatOfData;
+  SUPPORTED_FORMATS* FORMAT_PREFERENCE;
   UIButtonSet* volatile buttonSet;
   void* volatile data;
+  ProgramReturn(){
+    formatOfData = U_DEF;
+    PROGRAM_ID = nullptr;
+    FORMAT_PREFERENCE =  nullptr;
+    buttonSet = nullptr;
+    
+  }
   
 };
+
+
 class DesktopicoProgram
 {
   
 protected:
+
   std::function<void(void)> return_button_funct;
   std::function<void(void)> select_button_funct;
   std::function<void(void)> next_button_funct;
@@ -29,8 +50,11 @@ protected:
   void* _dataObject;
   bool _hasDataBeenPassed;
   void* getDataPtr();
-  ProgramReturn  returnValue;
+  ProgramReturn returnValue;
+  void setID(std::string programID);
+
 public:
+  SUPPORTED_FORMATS FORMAT_PRIORITY;
   UIButtonSet  ProgramDefinedButtons;
   bool hasDataBeenPassed();
   DesktopicoProgram(char program_name[]);
@@ -38,6 +62,11 @@ public:
   void pass_data(void* dataObject);
   virtual ProgramReturn* run(UIButtonSet* availableButtons) = 0;
   int getNumOfCharsInID();
+  std::string getID();
+  std::string* getID_ptr();
+
+private:
+  std::string ID;
 };
 
 

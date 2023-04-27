@@ -9,6 +9,7 @@ void* DesktopicoProgram::getDataPtr(){
 }
 
 DesktopicoProgram::DesktopicoProgram(char program_name[]){
+  ID = program_name;
   _finalIDCharIndex = 0;
   _hasDataBeenPassed = false;
   while((_finalIDCharIndex < MAXPICOPROGRAMIDCHARS) && (program_name[_finalIDCharIndex] != '\0')){
@@ -29,3 +30,17 @@ void DesktopicoProgram::pass_data(void* dataObject){
 int DesktopicoProgram::getNumOfCharsInID(){
   return _finalIDCharIndex;
 }
+
+
+  void DesktopicoProgram::setID(std::string programID){
+    ID = programID;
+
+  };
+
+std::string DesktopicoProgram::getID(){
+  return ID;
+};
+
+std::string* DesktopicoProgram::getID_ptr(){
+  return &ID;
+};

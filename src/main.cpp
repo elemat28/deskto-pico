@@ -293,13 +293,17 @@ void setup() {
 
 void loop() {
   
- 
+  digitalWrite(15, LOW);
   while(!alivePacket.outstandingPrint && !uiSupervisor.peekhasWork()){};
+  digitalWrite(15, HIGH);
   if(alivePacket.outstandingPrint == true){
     Serial.println(alivePacket.message.c_str());
     alivePacket.outstandingPrint = false;
+  };
+  if(uiSupervisor.peekhasWork()){
+    uiSupervisor.run();
   }
-  uiSupervisor.run();
+  
 
  
   

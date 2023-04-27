@@ -65,6 +65,7 @@
         "io_context": "cpp",
         "netfwd": "cpp",
         "timer": "cpp",
-        "mstd_mutex": "cpp"
+        "mstd_mutex": "cpp",
+        "mstd_iterator": "cpp"
     }
 }
