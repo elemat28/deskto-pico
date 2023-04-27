@@ -1,6 +1,6 @@
 #include "main.h"
 #define ALIVEMSGFREQSECS 2
-
+absolute_time_t DeBounce;
 alarm_pool_t* sample;
 absolute_time_t timeStamp;
 repeating_timer rtInst;
@@ -112,10 +112,18 @@ int startupSupervisor(){
   uiSupervisor.startup();
   return 0;
 }
+
 int attachSupervisorInterrupts(){
   attachInterrupt(digitalPinToInterrupt(9), Supervisor::GPIOInterruptHandler_RETURN, CHANGE);
   attachInterrupt(digitalPinToInterrupt(8), Supervisor::GPIOInterruptHandler_SELECT, CHANGE);
   attachInterrupt(digitalPinToInterrupt(7), Supervisor::GPIOInterruptHandler_NEXT, CHANGE);
+  return 0;
+}
+
+int attachSupervisorInterruptSingular(){
+  attachInterrupt(digitalPinToInterrupt(9), Supervisor::GPIOInterruptHandler_SINGULAR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(8), Supervisor::GPIOInterruptHandler_SINGULAR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(7), Supervisor::GPIOInterruptHandler_SINGULAR, CHANGE);
   return 0;
 }
 
@@ -245,6 +253,28 @@ void x(){
   }  
 
 }
+void Supervisor::GPIOInterruptHandler_SINGULAR(){
+ if(!time_reached(DeBounce)){
+  return;
+ }
+ DeBounce = make_timeout_time_ms(25);
+  if(digitalRead(9) == HIGH){
+    button_pressed = true;
+  uiSupervisor._trigger_return();
+  }else if (digitalRead(8) == HIGH)
+  {
+  button_pressed = true;
+  uiSupervisor._trigger_select();
+  }else if (digitalRead(7) == HIGH)
+  {
+    button_pressed = true;
+  uiSupervisor._trigger_next();
+  }
+
+  
+  
+}
+
 
 void Supervisor::GPIOInterruptHandler_RETURN(){
   button_pressed = true;
@@ -263,8 +293,8 @@ void Supervisor::GPIOInterruptHandler_NEXT(){
 
 void setup() {
   alivePacket.message.reserve(64); //without this timer breaks if string has to be resized in the callback
-  
-  Serial.begin(9600);
+  Serial.begin(19200);
+  DeBounce = make_timeout_time_ms(25);
   logFunctionResult("Pin Setup", pinSetup);
   //logFunctionResult("I2C 1602 LCD", ScreenSetup);
   logFunctionResult("UISupervisor init", createUISupervisor);
@@ -284,8 +314,9 @@ void setup() {
   //Serial.println(std::to_string(timer.getTimeLeftAsSeconds()).c_str());
   logFunctionResult("Supervisor STARTUP", startupSupervisor);
   logFunctionResult("Repeating ALIVE timer activation", setupAlivePrintToSerial);
-  logFunctionResult("Attach Supervisor interrupt", attachSupervisorInterrupts);
-  
+  //logFunctionResult("Attach Supervisor interrupt", attachSupervisorInterrupts);
+  logFunctionResult("Attach Supervisor SINGLE interrupt",  attachSupervisorInterruptSingular);
+ 
   
 }
 
@@ -301,7 +332,9 @@ void loop() {
     alivePacket.outstandingPrint = false;
   };
   if(uiSupervisor.peekhasWork()){
+    //Serial.println("Has work");
     uiSupervisor.run();
+    
   }
   
 

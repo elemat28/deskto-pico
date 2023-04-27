@@ -63,8 +63,7 @@ public:
   void pass_data(void* dataObject);
   virtual ProgramReturn* run(UIButtonSet* availableButtons) = 0;
   int getNumOfCharsInID();
-  std::string getID();
-  std::string* getID_ptr();
+  std::string static getID();
   static std::string ID;
 private:
  

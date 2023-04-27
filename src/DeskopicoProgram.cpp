@@ -9,8 +9,10 @@ void* DesktopicoProgram::getDataPtr(){
 }
 
 DesktopicoProgram::DesktopicoProgram(std::string program_ID){
-  //ID = program_ID;
+  
   _hasDataBeenPassed = false;
+  returnValue = ProgramReturn();
+
 
 }
    
@@ -27,7 +29,7 @@ int DesktopicoProgram::getNumOfCharsInID(){
 }
 
 
-std::string DesktopicoProgram::getID(){
+ std::string DesktopicoProgram::getID(){
   return ID;
 };
 

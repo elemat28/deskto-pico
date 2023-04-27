@@ -5,7 +5,6 @@
 
 Supervisor::Supervisor(): OS_MENU() {
   _ver = 0.1;
-  
   _splashScrenDuringStartup = true;
   temp_numOfPrograms = 0;
   _currentRunTarget = nullptr;
@@ -26,6 +25,7 @@ Supervisor::Supervisor(): OS_MENU() {
 }
 
 Supervisor::Supervisor(DesktopicoProgram* programs): Supervisor(){
+
 }
 
 Supervisor::~Supervisor(){
@@ -108,7 +108,7 @@ void Supervisor::run(){
     }
   }
   //hardwareDisplay->output_auto(returnedOutput);
-  hardwareDisplay->safe_output((( std::string*)returnedOutput->data)->c_str());
+  //hardwareDisplay->output_auto(returnedOutput);
   
 }
 

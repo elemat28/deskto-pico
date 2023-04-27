@@ -9,12 +9,14 @@ public:
   SupervisorMenu(const DesktopicoProgram* programs): SupervisorMenu((DesktopicoProgram*)programs){};
   ~SupervisorMenu();
  ProgramReturn* run(UIButtonSet* availableButtons);
-  void set_value();
-  void clear_value();
-  void set_str();
+  void select();
+  void previous();
+  void next();
 protected:
   static std::string ID;
+  std::string intToString(int value);
 private:
+  volatile int clicks;
   std::string message;
 
 

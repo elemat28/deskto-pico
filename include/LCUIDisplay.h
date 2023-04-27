@@ -29,7 +29,7 @@ class LCUIDisplay: public UIDisplayHandler {
     void clear();
     void safe_output(char* data);
     void safe_output(const char* data);
-    void output_auto(ProgramReturn* programOtput);
+    //void output_auto(ProgramReturn* programOtput);
 protected:
     void output(ProgramReturn*);
 

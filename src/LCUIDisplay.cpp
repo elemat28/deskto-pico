@@ -50,15 +50,14 @@ int LCUIDisplay::init(){
 void LCUIDisplay::clear(){
   screen.clear();
 };
-
+/*
 void LCUIDisplay::output_auto(ProgramReturn* programOutput){
-  int result = 0;
+  
   //OUTPUT_FORMAT* negotiate;
   //OUTPUT_FORMAT resolve;
   std::string name = "DUUPA4";
   if(programOutput->formatOfData == U_DEF){
-    result = 5;
-    
+      
     
   }
  
@@ -68,6 +67,7 @@ void LCUIDisplay::output_auto(ProgramReturn* programOutput){
   //promo.append(std::to_string(result));
   safe_output(programOutput->PROGRAM_ID.c_str());
 };
+*/
 
 void LCUIDisplay::safe_output(char* data){
   screen.clear();
@@ -80,7 +80,8 @@ void LCUIDisplay::safe_output(const char* data){
 }
 
 void LCUIDisplay::output(ProgramReturn* structure){
-  std::string loc = std::to_string(structure->formatOfData);
-  screen.println(loc.c_str());
+  std::string str = structure->PROGRAM_ID;
+  //std::string loc = std::to_string(structure->formatOfData);
+  screen.println(str.c_str());
 //safe_output((char*)structure->data);
 }

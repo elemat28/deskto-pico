@@ -6,11 +6,12 @@
 class AboutSystemInfo: public DesktopicoProgram
 {
 public:
+static std::string ID;
   AboutSystemInfo();
-  static char name[];
   ProgramReturn* run(UIButtonSet* availableButtons);
   std::map<std::string, std::string> systemDetails;
-private:
+protected:
+  
 };
 
 

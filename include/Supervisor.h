@@ -29,6 +29,7 @@ public:
   void run_program(char name[]);
   int debugFunc();
   int debugFunc(void* data);
+   static void GPIOInterruptHandler_SINGULAR();
   static void GPIOInterruptHandler_RETURN();
   static void GPIOInterruptHandler_SELECT();
   static void GPIOInterruptHandler_NEXT();

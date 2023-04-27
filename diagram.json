@@ -166,5 +166,10 @@
     [ "r1:1", "vcc1:VCC", "red", [ "v0" ] ],
     [ "r1:2", "encoder1:VCC", "red", [ "v0" ] ]
   ],
-  "dependencies": {}
+  "dependencies": {},
+  "serialMonitor":
+   { 
+    "display": "terminal", 
+    "newline": "lf" 
+  }
 }
