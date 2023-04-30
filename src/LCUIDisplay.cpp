@@ -31,6 +31,7 @@ LCUIDisplay::LCUIDisplay():screen(DEFAULTDISPLAYCONFIG.I2Caddress, DEFAULTDISPLA
  
   _backlight = false;
   currentLCDConfig = DEFAULTDISPLAYCONFIG;
+  DISPLAY_FORMATS = DISPLAY_FORMATS;
 };
 
 
@@ -70,9 +71,53 @@ void LCUIDisplay::output_auto(ProgramReturn* programOutput){
 */
 
 void LCUIDisplay::center_output(int row, std::string* output){
-  screen.setCursor((currentLCDConfig.columns - output->length())/2,row);
-  screen.print(output->c_str());
   
+  int emptyChars = ((currentLCDConfig.columns - output->length())/2);
+
+ 
+  std::string rowText = std::string();
+  rowText.resize(16, ' ');
+  
+  rowText.replace(emptyChars,output->length() ,*output);
+  screen.setCursor(0,row);
+  screen.print(rowText.c_str());
+  
+  
+}
+void LCUIDisplay::center_output_with_arrows(int row, std::string* output, bool returnArrow, bool nextArrow){
+  center_output(row, output);
+  //screen.setCursor((currentLCDConfig.columns - output->length())/2,row);
+  //screen.print(output->c_str());
+  std::string retButton;
+  std::string nextButton;
+  retButton = "<<";
+  nextButton = ">>";
+  int retPos = 0;
+  int nextPos = currentLCDConfig.columns-2;
+
+  if(output->length()<11){
+    
+  } else if (output->length()==11)
+  {
+    retButton = "<";
+    nextButton = ">>";
+  }
+  
+  else {
+    retButton = "<";
+    nextButton = ">";
+    nextPos = 15;
+    
+  };
+  if(returnArrow){
+    screen.setCursor(retPos, row);
+    screen.print(retButton.c_str());
+  };
+  if(nextArrow){
+  screen.setCursor(nextPos, row);
+   screen.print(nextButton.c_str());
+  };
+   
   
 }
 
@@ -83,32 +128,80 @@ void LCUIDisplay::safe_output(char* data){
 }
 
 
- void LCUIDisplay::output_auto(ProgramReturn* programOtput){
+ void LCUIDisplay::output_auto(ProgramReturn* programOutput){
+  int delulu = -1;
+  if(programOutput->formatOfData == U_DEF){
+    OUTPUT_FORMAT* negotiated;
+    SUPPORTED_FORMATS* localFormats_ptr;
+    OUTPUT_FORMAT MATCHED = U_DEF;
+    if(programOutput->FORMAT_PREFERENCE == nullptr){
+      delulu = 0;
+      return;
+    } else {
+      //negotiated = negotiate_format(programOutput->FORMAT_PREFERENCE);
+      auto programItter = programOutput->FORMAT_PREFERENCE->begin();
+      auto endItter = programOutput->FORMAT_PREFERENCE->end();
+      while(programItter != endItter){
+        auto beginDisplay = DISPLAY_FORMATS.begin();
+      auto endDisplay =  DISPLAY_FORMATS.end();
+      while(beginDisplay != endDisplay){
+        if(*beginDisplay == *programItter){
+          MATCHED = *beginDisplay;
+          beginDisplay =  DISPLAY_FORMATS.end();
+        } else{beginDisplay++;}
+        
+      };
+        if(MATCHED == U_DEF){programItter++;}
+        else {
+          programItter = endItter;
+        }
+      };
+      
+    }
+    if(MATCHED != U_DEF){
+    delulu = 64;
+  } else {
+    MATCHED = OUTPUT_FORMAT::BASE;
+  };
+  programOutput->formatOfData = MATCHED;
+  } else {
+    output(programOutput);
+  }
+};
+
+
+void LCUIDisplay::output(ProgramReturn* programOutput){
+  if(programOutput->formatOfData == LIST_OPTIONS_SIMPLE){
+    display_as_simple_list(programOutput);
+  }
+}
+
+
+void LCUIDisplay::display_as_simple_list(ProgramReturn* programOutput){
   int* index;
   std::string ID = "NOT_PROCESSED";
-  if(&programOtput->PROGRAM_ID != nullptr){
-    ID = programOtput->PROGRAM_ID;
+  if(&programOutput->PROGRAM_ID != nullptr){
+    ID = programOutput->PROGRAM_ID;
   };
-  LIST_OPTIONS_SIMPLE_STRUCT* strutDe =(LIST_OPTIONS_SIMPLE_STRUCT*)programOtput->data;
+  LIST_OPTIONS_SIMPLE_STRUCT* strutDe =(LIST_OPTIONS_SIMPLE_STRUCT*)programOutput->data;
   index = (strutDe->INDEX);
-  //ID = (std::to_string(index));
   if(*(index)<0){
     *(index) = 0;
   } else if (*index >= (int)(strutDe->OPTIONS_VECTOR.size()))
   {
     *index = strutDe->OPTIONS_VECTOR.size()-1;
   };
-  
   screen.clear();
-  //screen.println(strutDe->OPTIONS_VECTOR.at(*index).c_str());
-  //screen.print((std::to_string(*index)).c_str());
-  center_output(1, &(strutDe->OPTIONS_VECTOR.at(*index)));
-};
-
-
-void LCUIDisplay::output(ProgramReturn* structure){
-  std::string str = structure->PROGRAM_ID;
-  //std::string loc = std::to_string(structure->formatOfData);
-  screen.println(str.c_str());
-//safe_output((char*)structure->data);
-}
+  
+  bool begginingArrow = true;
+  bool endArrow = true;
+  if(*index == 0){
+    begginingArrow = false;
+  };
+  if (*index == strutDe->OPTIONS_VECTOR.size()-1)
+  {
+    endArrow = false;
+  };
+  center_output_with_arrows(0, &(strutDe->OPTIONS_VECTOR.at(*index)), begginingArrow, endArrow);
+  
+  }

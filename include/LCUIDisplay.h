@@ -33,7 +33,10 @@ class LCUIDisplay: public UIDisplayHandler {
 protected:
     void output(ProgramReturn*);
     void center_output(int row, std::string* output);
+    void center_output_with_arrows(int row, std::string* output, bool retArr = true, bool nextArr = true);
     LCI2CDisplay_t currentLCDConfig;
+    std::vector<std::string> display_rows;
+    void display_as_simple_list(ProgramReturn* programOtput);
 private:
     typedef LiquidCrystal_I2C obj;
     LiquidCrystal_I2C screen;

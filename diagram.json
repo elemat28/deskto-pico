@@ -11,7 +11,6 @@
       "rotate": 180,
       "attrs": {}
     },
-    { "type": "wokwi-breadboard-mini", "id": "bb3", "top": 238.6, "left": 391.2, "attrs": {} },
     {
       "type": "wokwi-lcd1602",
       "id": "lcd1",
@@ -22,24 +21,24 @@
     {
       "type": "wokwi-pushbutton",
       "id": "btn1",
-      "top": 277.8,
-      "left": 377.4,
+      "top": 223.86,
+      "left": 364.18,
       "rotate": 90,
       "attrs": { "color": "yellow" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn2",
-      "top": 277.8,
-      "left": 444.6,
+      "top": 224.12,
+      "left": 447.16,
       "rotate": 90,
       "attrs": { "color": "green" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn3",
-      "top": 277.8,
-      "left": 511.8,
+      "top": 224.45,
+      "left": 531.67,
       "rotate": 90,
       "attrs": { "color": "blue" }
     },
@@ -62,7 +61,7 @@
       "type": "wokwi-ky-040",
       "id": "encoder1",
       "top": 249.16,
-      "left": 265.32,
+      "left": 220.19,
       "rotate": 180,
       "attrs": {}
     },
@@ -86,8 +85,8 @@
     {
       "type": "wokwi-resistor",
       "id": "r3",
-      "top": 244.25,
-      "left": 301.3,
+      "top": 209.18,
+      "left": 254,
       "rotate": 180,
       "attrs": { "value": "10000" }
     },
@@ -137,39 +136,23 @@
     [ "pico:GP6", "bz1:2", "red", [ "h0" ] ],
     [ "lcd1:SCL", "pico:GP5", "green", [ "h-144.92", "v227.28" ] ],
     [ "lcd1:SDA", "pico:GP4", "green", [ "h-154.45", "v243.7" ] ],
-    [ "bb3:3t.b", "bb3:10t.b", "red", [ "v0" ] ],
-    [ "bb3:10t.a", "bb3:17t.a", "red", [ "v0" ] ],
     [ "gnd1:GND", "encoder1:GND", "black", [ "v0" ] ],
-    [ "bb3:3t.a", "r3:1", "red", [ "v0" ] ],
     [ "vcc1:VCC", "r3:2", "red", [ "v0" ] ],
-    [ "pico:GP7", "bb3:15b.j", "blue", [ "h0" ] ],
-    [ "pico:GP8", "bb3:8b.i", "green", [ "h0" ] ],
-    [ "pico:GP9", "btn1:2.r", "yellow", [ "h0" ] ],
     [ "gnd2:GND", "r5:2", "black", [ "v0" ] ],
     [ "r5:2", "r4:2", "black", [ "h0" ] ],
     [ "r4:2", "r2:2", "black", [ "h0" ] ],
     [ "pico:GP9", "r5:1", "yellow", [ "h0" ] ],
     [ "pico:GP8", "r4:1", "green", [ "h0" ] ],
     [ "pico:GP7", "r2:1", "blue", [ "h0" ] ],
-    [ "btn1:1.l", "bb3:3t.c", "", [ "$bb" ] ],
-    [ "btn1:2.l", "bb3:1t.c", "", [ "$bb" ] ],
-    [ "btn1:1.r", "bb3:3b.h", "", [ "$bb" ] ],
-    [ "btn1:2.r", "bb3:1b.h", "", [ "$bb" ] ],
-    [ "btn2:1.l", "bb3:10t.c", "", [ "$bb" ] ],
-    [ "btn2:2.l", "bb3:8t.c", "", [ "$bb" ] ],
-    [ "btn2:1.r", "bb3:10b.h", "", [ "$bb" ] ],
-    [ "btn2:2.r", "bb3:8b.h", "", [ "$bb" ] ],
-    [ "btn3:1.l", "bb3:17t.c", "", [ "$bb" ] ],
-    [ "btn3:2.l", "bb3:15t.c", "", [ "$bb" ] ],
-    [ "btn3:1.r", "bb3:17b.h", "", [ "$bb" ] ],
-    [ "btn3:2.r", "bb3:15b.h", "", [ "$bb" ] ],
     [ "r1:1", "vcc1:VCC", "red", [ "v0" ] ],
-    [ "r1:2", "encoder1:VCC", "red", [ "v0" ] ]
+    [ "r1:2", "encoder1:VCC", "red", [ "v0" ] ],
+    [ "r3:1", "btn1:1.l", "red", [ "v0" ] ],
+    [ "btn1:1.l", "btn2:1.l", "red", [ "v0" ] ],
+    [ "btn2:1.l", "btn3:1.l", "red", [ "v0" ] ],
+    [ "pico:GP9", "btn1:2.r", "yellow", [ "h0" ] ],
+    [ "pico:GP8", "btn2:2.r", "green", [ "h0" ] ],
+    [ "pico:GP7", "btn3:2.r", "blue", [ "h0" ] ]
   ],
-  "dependencies": {},
-  "serialMonitor":
-   { 
-    "display": "terminal", 
-    "newline": "lf" 
-  }
+  "serialMonitor": { "display": "terminal", "newline": "lf" },
+  "dependencies": {}
 }

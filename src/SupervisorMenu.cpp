@@ -4,9 +4,11 @@ SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID) {
 
   listOfPrograms.emplace_back("OPTION_1");
   listOfPrograms.emplace_back("OPTION2");
-  listOfPrograms.emplace_back("OPTION_3");
-  listOfPrograms.emplace_back("OPTION_4");
-  listOfPrograms.emplace_back("OPTION_5");
+  listOfPrograms.emplace_back("OPTION_3X");
+  listOfPrograms.emplace_back("OPTION_4XX");
+  listOfPrograms.emplace_back("OPTION_5XXX");
+  listOfPrograms.emplace_back("OPTION_6XXXX");
+  listOfPrograms.emplace_back("OPTION_7XXXXX");
   current_index = 0;
   
   FORMAT_PRIORITY = {LIST_OPTIONS_INDEXED, LIST_OPTIONS_SIMPLE, HEADING_LIST};
@@ -55,6 +57,7 @@ void SupervisorMenu::init(){
   ProgramDefinedButtons.RETURN.setCallbackFunction(return_button_funct);
   ProgramDefinedButtons.SELECT.setCallbackFunction(select_button_funct);
   ProgramDefinedButtons.NEXT.setCallbackFunction(next_button_funct);
+  returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
 }
 
 

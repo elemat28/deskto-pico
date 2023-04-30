@@ -91,6 +91,9 @@ void Supervisor::startup(){
   }
   hardwareDisplay->clear();
   _currentRunTarget->init();
+  returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
+  hardwareDisplay->output_auto(returnedOutput);
+  _pendingScreenRefresh = true;
   //hardwareDisplay->safe_output((char*)REQUIRED_BUTTONS.NEXT.first.c_str());
   
 }
@@ -109,6 +112,7 @@ void Supervisor::run(){
     }
   }
   hardwareDisplay->output_auto(returnedOutput);
+  _pendingScreenRefresh = false;
   //hardwareDisplay->output_auto(returnedOutput);
   
 }
