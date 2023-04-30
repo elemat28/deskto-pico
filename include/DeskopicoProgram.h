@@ -37,7 +37,7 @@ struct ProgramReturn {
   OUTPUT_FORMAT volatile formatOfData;
   SUPPORTED_FORMATS* FORMAT_PREFERENCE;
   UIButtonSet* volatile buttonSet;
-  volatile void* data;
+  void* data;
   ProgramReturn(){
     formatOfData = U_DEF;
     PROGRAM_ID = nullptr;
@@ -54,9 +54,10 @@ class DesktopicoProgram
   
 protected:
 
-  std::function<void(void)> return_button_funct;
-  std::function<void(void)> select_button_funct;
-  std::function<void(void)> next_button_funct;
+  
+  std::function<void()> return_button_funct;
+  std::function<void()> select_button_funct;
+  std::function<void()> next_button_funct;
   char _programID[MAXPICOPROGRAMIDCHARS+1];
   int _finalIDCharIndex;
   UIButton* _buttons;
@@ -74,6 +75,7 @@ public:
   //DesktopicoProgram(std::string program_ID);
   void pass_buttons(UIButton buttons[]);
   void pass_data(void* dataObject);
+  virtual void init() = 0;
   virtual ProgramReturn* run(UIButtonSet* availableButtons) = 0;
   int getNumOfCharsInID();
   std::string static getID();

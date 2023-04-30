@@ -12,6 +12,7 @@ public:
   void select();
   void previous();
   void next();
+  void init();
 protected:
   static std::string ID;
   std::string intToString(int value);

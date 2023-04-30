@@ -90,6 +90,7 @@ void Supervisor::startup(){
     };
   }
   hardwareDisplay->clear();
+  _currentRunTarget->init();
   //hardwareDisplay->safe_output((char*)REQUIRED_BUTTONS.NEXT.first.c_str());
   
 }

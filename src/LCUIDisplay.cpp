@@ -30,7 +30,7 @@ LCUIDisplay::LCUIDisplay():screen(DEFAULTDISPLAYCONFIG.I2Caddress, DEFAULTDISPLA
   
  
   _backlight = false;
-  
+  currentLCDConfig = DEFAULTDISPLAYCONFIG;
 };
 
 
@@ -69,28 +69,40 @@ void LCUIDisplay::output_auto(ProgramReturn* programOutput){
 };
 */
 
+void LCUIDisplay::center_output(int row, std::string* output){
+  screen.setCursor((currentLCDConfig.columns - output->length())/2,row);
+  screen.print(output->c_str());
+  
+  
+}
+
 void LCUIDisplay::safe_output(char* data){
   screen.clear();
   screen.setCursor(0,0);
   screen.print(data);
 }
 
-void LCUIDisplay::safe_output(const char* data){
-  safe_output((char*)data);
-}
- void LCUIDisplay::output_auto(ProgramReturn* programOtput){
 
+ void LCUIDisplay::output_auto(ProgramReturn* programOtput){
+  int* index;
   std::string ID = "NOT_PROCESSED";
   if(&programOtput->PROGRAM_ID != nullptr){
     ID = programOtput->PROGRAM_ID;
-  }
-  LIST_OPTIONS_SIMPLE_STRUCT DATA;
-  if(&programOtput->data != nullptr){
-    DATA = *(LIST_OPTIONS_SIMPLE_STRUCT*)programOtput->data;
-  }
- ;
-  safe_output( DATA.OPTIONS_VECTOR.at(*DATA.INDEX).c_str());
-
+  };
+  LIST_OPTIONS_SIMPLE_STRUCT* strutDe =(LIST_OPTIONS_SIMPLE_STRUCT*)programOtput->data;
+  index = (strutDe->INDEX);
+  //ID = (std::to_string(index));
+  if(*(index)<0){
+    *(index) = 0;
+  } else if (*index >= (int)(strutDe->OPTIONS_VECTOR.size()))
+  {
+    *index = strutDe->OPTIONS_VECTOR.size()-1;
+  };
+  
+  screen.clear();
+  //screen.println(strutDe->OPTIONS_VECTOR.at(*index).c_str());
+  //screen.print((std::to_string(*index)).c_str());
+  center_output(1, &(strutDe->OPTIONS_VECTOR.at(*index)));
 };
 
 

@@ -1,8 +1,9 @@
 #include "SupervisorMenu.h"
 std::string SupervisorMenu::ID("OS_MENU");
 SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID) {
+
   listOfPrograms.emplace_back("OPTION_1");
-  listOfPrograms.emplace_back("OPTION_2");
+  listOfPrograms.emplace_back("OPTION2");
   listOfPrograms.emplace_back("OPTION_3");
   listOfPrograms.emplace_back("OPTION_4");
   listOfPrograms.emplace_back("OPTION_5");
@@ -16,9 +17,10 @@ SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID) {
   returnValue.buttonSet = &ProgramDefinedButtons;
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
 
-  return_button_funct = std::bind(&SupervisorMenu::previous, this);
-  select_button_funct = std::bind(&SupervisorMenu::select, this);
-  next_button_funct = std::bind(&SupervisorMenu::next, this);
+  return_button_funct = [this](){ previous(); };
+  select_button_funct = [this](){ select(); };
+  next_button_funct = [this](){ next(); };
+  
   UIButton temp;
 
   temp = ProgramDefinedButtons.RETURN;
@@ -31,8 +33,9 @@ SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID) {
 
   temp = ProgramDefinedButtons.NEXT;
   temp.setCallbackFunction(next_button_funct);
+  
   ProgramDefinedButtons.NEXT = temp;
-
+  
   return_data = LIST_OPTIONS_SIMPLE_STRUCT((int*)&current_index, listOfPrograms);
   returnValue.data = &return_data;
 
@@ -45,8 +48,21 @@ SupervisorMenu::~SupervisorMenu(){
   
 }
 
-ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
+void SupervisorMenu::init(){
+  return_button_funct = [this](){ previous(); };
+  select_button_funct = [this](){ select(); };
+  next_button_funct = [this](){ next(); };
+  ProgramDefinedButtons.RETURN.setCallbackFunction(return_button_funct);
+  ProgramDefinedButtons.SELECT.setCallbackFunction(select_button_funct);
+  ProgramDefinedButtons.NEXT.setCallbackFunction(next_button_funct);
+}
 
+
+ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
+  //previous();
+  
+  return_data = LIST_OPTIONS_SIMPLE_STRUCT((int*)&current_index, listOfPrograms);
+  returnValue.data = &return_data;
   return &returnValue;
   
   
@@ -54,22 +70,22 @@ ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
 
 void SupervisorMenu::previous(){
   current_index--;
-  message = intToString(current_index);
+  //message = intToString(current_index);
   //ProgramDefinedButtons.NEXT.setID("X");
   //message = std::string("");
 }
 
 
 void SupervisorMenu::select(){
-  message = std::string("SELECTED: ");
-  message.append(intToString(current_index));
+  //message = std::string("SELECTED: ");
+  //message.append(intToString(current_index));
 
 }
 
 
 void SupervisorMenu::next(){
   current_index++;
-  message = intToString(current_index);
+  //message = intToString(current_index);
 
 }
 

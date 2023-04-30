@@ -32,7 +32,8 @@ class LCUIDisplay: public UIDisplayHandler {
     //void output_auto(ProgramReturn* programOtput);
 protected:
     void output(ProgramReturn*);
-
+    void center_output(int row, std::string* output);
+    LCI2CDisplay_t currentLCDConfig;
 private:
     typedef LiquidCrystal_I2C obj;
     LiquidCrystal_I2C screen;
