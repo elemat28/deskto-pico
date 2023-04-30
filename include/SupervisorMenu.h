@@ -16,8 +16,10 @@ protected:
   static std::string ID;
   std::string intToString(int value);
 private:
-  volatile int clicks;
+  std::vector<std::string> listOfPrograms;
+  volatile int current_index;
   std::string message;
+  LIST_OPTIONS_SIMPLE_STRUCT return_data;
 
 
   

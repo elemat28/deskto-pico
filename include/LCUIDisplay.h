@@ -21,7 +21,7 @@ class LCUIDisplay: public UIDisplayHandler {
     int columns;
     int lines;
   } LCI2CDisplay_t;
-
+  virtual void output_auto(ProgramReturn* programOtput);
   static LCI2CDisplay_t DEFAULTDISPLAYCONFIG;
     LCUIDisplay();
     LCUIDisplay(LCI2CDisplay_t displayDefinition);

@@ -1,12 +1,18 @@
 #include "SupervisorMenu.h"
 std::string SupervisorMenu::ID("OS_MENU");
 SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID) {
-  clicks = 0;
+  listOfPrograms.emplace_back("OPTION_1");
+  listOfPrograms.emplace_back("OPTION_2");
+  listOfPrograms.emplace_back("OPTION_3");
+  listOfPrograms.emplace_back("OPTION_4");
+  listOfPrograms.emplace_back("OPTION_5");
+  current_index = 0;
+  
   FORMAT_PRIORITY = {LIST_OPTIONS_INDEXED, LIST_OPTIONS_SIMPLE, HEADING_LIST};
   ProgramDefinedButtons = UIButtonSet();
   //clear_value();
   returnValue.PROGRAM_ID = ID;
-  returnValue.data = &message;
+
   returnValue.buttonSet = &ProgramDefinedButtons;
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
 
@@ -27,6 +33,10 @@ SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID) {
   temp.setCallbackFunction(next_button_funct);
   ProgramDefinedButtons.NEXT = temp;
 
+  return_data = LIST_OPTIONS_SIMPLE_STRUCT((int*)&current_index, listOfPrograms);
+  returnValue.data = &return_data;
+
+  
  
 }
 
@@ -43,8 +53,8 @@ ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
 }
 
 void SupervisorMenu::previous(){
-  clicks--;
-  message = intToString(clicks);
+  current_index--;
+  message = intToString(current_index);
   //ProgramDefinedButtons.NEXT.setID("X");
   //message = std::string("");
 }
@@ -52,14 +62,14 @@ void SupervisorMenu::previous(){
 
 void SupervisorMenu::select(){
   message = std::string("SELECTED: ");
-  message.append(intToString(clicks));
+  message.append(intToString(current_index));
 
 }
 
 
 void SupervisorMenu::next(){
-  clicks++;
-  message = intToString(clicks);
+  current_index++;
+  message = intToString(current_index);
 
 }
 

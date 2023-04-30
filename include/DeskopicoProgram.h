@@ -18,13 +18,26 @@ enum OUTPUT_FORMAT {
   OPTION_BUTTONS,
   HEADING_LIST
 };
+struct LIST_OPTIONS_SIMPLE_STRUCT {
+  int* INDEX;
+  std::vector<std::string> OPTIONS_VECTOR;
+  LIST_OPTIONS_SIMPLE_STRUCT(int* index, std::vector<std::string> options){
+    INDEX = index;
+    OPTIONS_VECTOR = options;
+  }
+  LIST_OPTIONS_SIMPLE_STRUCT(){
+    INDEX = nullptr;
+
+  }
+};
+
 typedef std::vector<OUTPUT_FORMAT> SUPPORTED_FORMATS;
 struct ProgramReturn {
   std::string PROGRAM_ID;
   OUTPUT_FORMAT volatile formatOfData;
   SUPPORTED_FORMATS* FORMAT_PREFERENCE;
   UIButtonSet* volatile buttonSet;
-  void* volatile data;
+  volatile void* data;
   ProgramReturn(){
     formatOfData = U_DEF;
     PROGRAM_ID = nullptr;

@@ -78,6 +78,21 @@ void LCUIDisplay::safe_output(char* data){
 void LCUIDisplay::safe_output(const char* data){
   safe_output((char*)data);
 }
+ void LCUIDisplay::output_auto(ProgramReturn* programOtput){
+
+  std::string ID = "NOT_PROCESSED";
+  if(&programOtput->PROGRAM_ID != nullptr){
+    ID = programOtput->PROGRAM_ID;
+  }
+  LIST_OPTIONS_SIMPLE_STRUCT DATA;
+  if(&programOtput->data != nullptr){
+    DATA = *(LIST_OPTIONS_SIMPLE_STRUCT*)programOtput->data;
+  }
+ ;
+  safe_output( DATA.OPTIONS_VECTOR.at(*DATA.INDEX).c_str());
+
+};
+
 
 void LCUIDisplay::output(ProgramReturn* structure){
   std::string str = structure->PROGRAM_ID;

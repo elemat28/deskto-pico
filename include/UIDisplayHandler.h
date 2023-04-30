@@ -11,7 +11,7 @@ class UIDisplayHandler {
     virtual void clear() = 0;
     virtual void safe_output(char* data) = 0;
     void safe_output(const char* data);
-    void output_auto(ProgramReturn* programOtput);
+    virtual void output_auto(ProgramReturn* programOtput);
     
     protected:
     virtual void output(ProgramReturn*programOtput) = 0 ;

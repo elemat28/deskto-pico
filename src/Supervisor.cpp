@@ -107,7 +107,7 @@ void Supervisor::run(){
       _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
     }
   }
-  //hardwareDisplay->output_auto(returnedOutput);
+  hardwareDisplay->output_auto(returnedOutput);
   //hardwareDisplay->output_auto(returnedOutput);
   
 }
