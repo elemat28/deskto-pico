@@ -1,22 +1,32 @@
 #include "main.h"
 #define ALIVEMSGFREQSECS 2
+#define MENUHOLD_MS 1500
+#define DEBOUNCE 120
 
-alarm_pool_t* sample;
-absolute_time_t timeStamp;
-repeating_timer rtInst;
-struct AlivePacket {
-  
+#define RETURN_GPIO 9
+#define SELECT_GPIO 8
+#define NEXT_GPIO   7
+struct AlivePacket{
   std::string message;
-  volatile bool outstandingPrint = false;
+  volatile bool outstandingPrint; 
+  AlivePacket(){
+    message = std::string();
+    outstandingPrint = false;
+  }
+} alivePacket;
+
+
+int64_t alarm_callback(alarm_id_t id, void *user_data) {
+  typedef  volatile bool* DataFormat;
+  DataFormat ptr = (DataFormat)user_data;
+  if(*ptr && (digitalRead(RETURN_GPIO)==PinStatus::HIGH)){
+    timer_fired = true;
+  };
+  holdCounting = false;
+  holding = false;
+
+  return 0;
 };
-
-AlivePacket alivePacket;
-
-bool button_pressed = false;
-
-long int itter;
-
-volatile int data = 0;
 
 int logFunctionResult(const std::string functionMessage, int (*function_ptr)(), bool logToConsole = true){
   if(logToConsole){
@@ -38,37 +48,8 @@ int logFunctionResult(const std::string functionMessage, int (*function_ptr)(), 
   } else {
     return function_ptr();
   }
-}
-struct pinButtonDeclaration {
-  std::string HW_BUTTON_ID; 
-  int GPIO;
-};
-struct pinButton{
-  std::string HW_BUTTON_ID; 
-  int GPIO;
-  UIButton* button;
-  int debounceMs = 50;
-  volatile bool clicked = false;
-  volatile int pinReading = 0;
 };
 
-pinButtonDeclaration declarationDict[] = {
-  {std::string("BUTTON_YELLOW"), 9},
-  {std::string("BUTTON_GREEN"), 8},
-  {std::string("BUTTON_BLUE"), 7}
-};
-
-const int NUM_OF_DECLARED_PIN_BUTTONS = sizeof(declarationDict)/sizeof(pinButtonDeclaration);
-
-UIButton UIButtonsArray[NUM_OF_DECLARED_PIN_BUTTONS];
-
-pinButton pinButtonDict[NUM_OF_DECLARED_PIN_BUTTONS];
-
-absolute_time_t debounceTimestamps[NUM_OF_DECLARED_PIN_BUTTONS];
-
-void* programFunctionsDeclaration[] = {
-
-};
 
 int pinSetup(){
   //RGB led
@@ -86,66 +67,73 @@ int pinSetup(){
   //buzzer
   pinMode(6, OUTPUT);
   return 0;
-}
+};
 
 int createUISupervisor(){
-  uiSupervisor = Supervisor();
+  
   return 0;
-}
+};
 
 int createUIdisplay(){
   screen = LCUIDisplay();
   return 0;
-}
+};
 
 int addDisplayToSupervisor(){
   uiSupervisor.set_UIDisplay(&screen);
   return 0;
-}
+};
 
 int finalizeSupervisor(){
   uiSupervisor.finalize();
   return 0;
-}
+};
 
 int startupSupervisor(){
   uiSupervisor.startup();
   return 0;
-}
-int attachSupervisorInterrupts(){
-  attachInterrupt(digitalPinToInterrupt(9), Supervisor::GPIOInterruptHandler_RETURN, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(8), Supervisor::GPIOInterruptHandler_SELECT, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(7), Supervisor::GPIOInterruptHandler_NEXT, CHANGE);
+};
+
+void GPIOInterruptHandler_SINGULAR(){
+  if(holding){
+    if(digitalRead(RETURN_GPIO) == LOW){
+      holding = false;
+      button_pressed = true;
+      GPIO = RETURN_GPIO;
+  };
+  }else if(!time_reached(DeBounce)){
+  return;
+ }else if(digitalRead(RETURN_GPIO) == HIGH){
+    if(!holdCounting){
+      build_alarm = true;
+    };
+  } else if (digitalRead(SELECT_GPIO) == HIGH){
+  button_pressed = true;
+  GPIO = SELECT_GPIO;
+  //uiSupervisor._trigger_select();
+  }else if (digitalRead(NEXT_GPIO) == HIGH){
+    button_pressed = true;
+    GPIO = NEXT_GPIO;
+  }else {
+    button_pressed = false;
+  };
+};
+
+
+int attachSupervisorInterruptSingular(){
+  attachInterrupt(digitalPinToInterrupt(9), GPIOInterruptHandler_SINGULAR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(8), GPIOInterruptHandler_SINGULAR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(7), GPIOInterruptHandler_SINGULAR, CHANGE);
   return 0;
-}
+};
 
 int setupInitialAlarmPool(){
-  sample = createAlarmPool();
+  alarm_pool_primary = alarm_pool_create(2,16);
+  alarm_pool_secondary = alarm_pool_create(3,32);
   return 0;
 }
 
-void defineButtons(){
-  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
-  {
-    
-    UIButtonsArray[i] = UIButton();
-  }
-}
 
-bool callbackFunct(repeating_timer* rt){
-  pinButton* arrOf = (pinButton*)rt->user_data;
-  pinButton parr = arrOf[0];
-  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
-  {
-    pinButton parr = arrOf[i];
-    if(0 < digitalRead(parr.GPIO)){
-    digitalWrite(15,1);
-    parr.clicked = false;
-    }
-  }
-  
-  return true;
-}
 
 bool repeatingPrintAliveFunct(repeating_timer* rt){
   AlivePacket* dataPtr = (AlivePacket*)(*rt).user_data;
@@ -156,95 +144,41 @@ bool repeatingPrintAliveFunct(repeating_timer* rt){
     (*dataPtr).outstandingPrint = true;
   } 
   return true;
-}
-
-void interruptFunction(void){
-
-  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
-  {
-    pinButtonDict[i].pinReading = digitalRead(pinButtonDict[i].GPIO);
-  }
-}
-
-void RotaryInterrupt(void){
-  if(digitalRead(11) == digitalRead(10)){
-    rotary.turnACW();
-  } else {
-    rotary.turnCW();
-  }
-
-}
-
-void assignButtons(){
-  Serial.println("Assigning buttons to GPIOs...");
-  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
-  {
-    pinButtonDict[i] = pinButton{declarationDict[i].HW_BUTTON_ID, declarationDict[i].GPIO, &(UIButtonsArray[i])};
-    debounceTimestamps[i] = make_timeout_time_ms(pinButtonDict[i].debounceMs);
-  }
-  Serial.println("Buttons to GPIOs OK");
-}
-
-void assignFunctionsToButtons(){
-  Serial.println("assigning functions to buttons...");
-  //YELLOW - toggle backlight
-  pinButton YELLOW = pinButtonDict[0];
-  //YELLOW.button->setCallback(&screenBacklightToggle);
-  YELLOW.button->enable();
-  pinButtonDict[0] = YELLOW;
-
-  //GREEN - Serial log encoder Val
-  pinButton GREEN = pinButtonDict[1];
-  //GREEN.button->setCallback(&logEncoderValue);
-  GREEN.button->enable();
-  pinButtonDict[1] = GREEN;
-  Serial.println("OK!");
-}
+};
 
 
 
-void setupInterrupts(){
-  Serial.println("attaching interrupts...");
-  //Buttons
-  attachInterrupt(digitalPinToInterrupt(7), interruptFunction, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(8), interruptFunction, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(9), interruptFunction, CHANGE);
-
-  //Rotary
-  attachInterrupt(digitalPinToInterrupt(10), RotaryInterrupt, FALLING);
-  Serial.println("OK!");
+int setupMainMenuOnHold(){
+  //returnHomeTimestamp = get_absolute_time();
+  return 0;
 }
 
 int setupAlivePrintToSerial(){
-  if(createTimeout(sample, ALIVEMSGFREQSECS*1000000, repeatingPrintAliveFunct,(void*)&alivePacket, (repeating_timer_t*)&rtInst)){
+  if(createTimeout(alarm_pool_primary, ALIVEMSGFREQSECS*1000000, repeatingPrintAliveFunct,(void*)&alivePacket, (repeating_timer_t*)&rtInst)){
     return 0;
   } else {
     return 1;
   }
-}
+};
 
-void x(){
-  for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
-  {
-    if((pinButtonDict[i].debounceMs == 0 ) || (time_reached(debounceTimestamps[i])))
-    {
-      pinButton dupe = pinButtonDict[i];
-      if(dupe.pinReading == HIGH){
-        Serial.print(dupe.HW_BUTTON_ID.c_str());
-        if(dupe.button->isEnabled()){
-          Serial.print(" ENABLED ");
-        } else {
-          Serial.print(" NOT ENABLED ");
-        }
-        dupe.button->trigger();
-        Serial.println(std::to_string(dupe.pinReading).c_str());
-        pinButtonDict[i].clicked = false;
-        debounceTimestamps[i] = make_timeout_time_ms(pinButtonDict[i].debounceMs);
-      }
-    }
-  }  
 
-}
+void setupHoldAlarm(){
+  build_alarm = false;
+  holding = true;
+  holdCounting = true;
+  homeButtonAlarmID = createTimeout_single(alarm_pool_secondary, 1000, alarm_callback, (void*)&holding, true);
+};
+
+void cancelHoldAlarm(){
+  remove_alarm = false;
+  holdCounting = false;
+   alarm_pool_cancel_alarm(alarm_pool_secondary, homeButtonAlarmID);
+   homeButtonAlarmID = 0;
+};
+
+
+
+
 
 void Supervisor::GPIOInterruptHandler_RETURN(){
   button_pressed = true;
@@ -262,12 +196,26 @@ void Supervisor::GPIOInterruptHandler_NEXT(){
 }
 
 void setup() {
+  USBSetup();
+  GPIO = -1;
+  printFreq = get_absolute_time();
+  alivePacket = AlivePacket();
+  holding = false;
+  holdCounting = false;
+  callbackResult = false;
+  timer_fired = false;
+  button_pressed = false;
+  build_alarm = false;
+  remove_alarm = false;
+  DeBounce = make_timeout_time_ms(DEBOUNCE);
+  homeButtonAlarmID = 0;
+  alivePacket.outstandingPrint = true;
   alivePacket.message.reserve(64); //without this timer breaks if string has to be resized in the callback
-  
-  Serial.begin(9600);
+
   logFunctionResult("Pin Setup", pinSetup);
+
   //logFunctionResult("I2C 1602 LCD", ScreenSetup);
-  logFunctionResult("UISupervisor init", createUISupervisor);
+  //logFunctionResult("UISupervisor init", createUISupervisor);
   logFunctionResult("UIDisplay instantiate", createUIdisplay);
   logFunctionResult("Add display to supervisor", addDisplayToSupervisor);
   logFunctionResult("Finalize Supervisor", finalizeSupervisor);
@@ -282,31 +230,65 @@ void setup() {
   
   //setupInterrupts();
   //Serial.println(std::to_string(timer.getTimeLeftAsSeconds()).c_str());
-  logFunctionResult("Supervisor STARTUP", startupSupervisor);
+  //logFunctionResult("Supervisor STARTUP", startupSupervisor);
   logFunctionResult("Repeating ALIVE timer activation", setupAlivePrintToSerial);
-  logFunctionResult("Attach Supervisor interrupt", attachSupervisorInterrupts);
+  logFunctionResult("Attach Supervisor interrupt", attachSupervisorInterruptSingular);
   
-  
-}
+  uiSupervisor.startup();
+};
 
 
 
 void loop() {
   
-  digitalWrite(15, LOW);
-  while(!alivePacket.outstandingPrint && !uiSupervisor.peekhasWork()){};
-  digitalWrite(15, HIGH);
-  if(alivePacket.outstandingPrint == true){
-    Serial.println(alivePacket.message.c_str());
-    alivePacket.outstandingPrint = false;
+  while(!time_reached(printFreq) && !button_pressed && !(GPIO>0) && !timer_fired){};
+  if(timer_fired){
+    timer_fired = false;
+    Serial.println("LONG PRESS!");
+    uiSupervisor.HOME.trigger_function();
+    holding = false;
   };
-  if(uiSupervisor.peekhasWork()){
-    uiSupervisor.run();
-  }
+  if(time_reached(printFreq)){
+    //Serial.println("test");
+    printFreq = make_timeout_time_ms(1000);
+  };
+
+  if(alivePacket.outstandingPrint){
+    alivePacket.outstandingPrint = false;
+    Serial.println(alivePacket.message.c_str());
+  };
+
   
 
- 
+  if(build_alarm){
+      setupHoldAlarm();
+  }else if(GPIO>0){
+    Serial.println("button_pressed");
+    //button_pressed = false;
+    switch (GPIO)
+    {
+    case RETURN_GPIO:
+      uiSupervisor.REQUIRED_BUTTONS.RETURN.trigger_function();
+      break;
+    case SELECT_GPIO:
+      uiSupervisor.REQUIRED_BUTTONS.SELECT.trigger_function();
+      break;
+    case NEXT_GPIO:
+    uiSupervisor.REQUIRED_BUTTONS.NEXT.trigger_function();
+      break;
+    default:
+    GPIO = -1;
+      break;
+    };
+    GPIO = 0;
+  }else if(remove_alarm){cancelHoldAlarm();};
+  DeBounce = make_timeout_time_ms(50);
+  button_pressed = false;
+  uiSupervisor.run();
+  };
+
   
+
   
-  
-}
+    
+    

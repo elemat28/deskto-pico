@@ -1,6 +1,6 @@
 #ifndef UIDSPLHDNLR_H
 #define UIDSPLHDNLR_H
-#include <DeskopicoProgram.h>
+#include <DesktopicoProgram.h>
 
 
 
@@ -11,7 +11,7 @@ class UIDisplayHandler {
     virtual void clear() = 0;
     virtual void safe_output(char* data) = 0;
     void safe_output(const char* data);
-    virtual void output_auto(ProgramReturn* programOtput)  = 0 ;
+    virtual void output_auto(ProgramReturn* programOtput);
     
     protected:
     virtual void output(ProgramReturn*programOtput) = 0 ;

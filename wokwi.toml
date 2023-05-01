@@ -1,6 +1,6 @@
+#gdbServerPort=3333
 [wokwi]
 version=1
 rfc2217ServerPort=4000
-gdbServerPort=3333
 firmware='.pio/build/wokwi/firmware.uf2'
 elf='.pio/build/wokwi/firmware.elf'

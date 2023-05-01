@@ -21,7 +21,7 @@ class LCUIDisplay: public UIDisplayHandler {
     int columns;
     int lines;
   } LCI2CDisplay_t;
-
+  virtual void output_auto(ProgramReturn* programOtput);
   static LCI2CDisplay_t DEFAULTDISPLAYCONFIG;
     LCUIDisplay();
     LCUIDisplay(LCI2CDisplay_t displayDefinition);
@@ -29,10 +29,15 @@ class LCUIDisplay: public UIDisplayHandler {
     void clear();
     void safe_output(char* data);
     void safe_output(const char* data);
-    void output_auto(ProgramReturn* programOtput);
+    //void output_auto(ProgramReturn* programOtput);
 protected:
     void output(ProgramReturn*);
-
+    void center_output(int row, std::string* output);
+    void center_output_with_arrows(int row, std::string* output, bool retArr = true, bool nextArr = true);
+    LCI2CDisplay_t currentLCDConfig;
+    std::vector<std::string> display_rows;
+    void display_as_simple_list(ProgramReturn* programOtput);
+    void display_as_key_value_list(ProgramReturn* programOtput);
 private:
     typedef LiquidCrystal_I2C obj;
     LiquidCrystal_I2C screen;

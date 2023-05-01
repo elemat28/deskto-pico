@@ -29,11 +29,20 @@ public:
   void run_program(char name[]);
   int debugFunc();
   int debugFunc(void* data);
+  static void GPIOInterruptHandler_SINGULAR();
   static void GPIOInterruptHandler_RETURN();
   static void GPIOInterruptHandler_SELECT();
   static void GPIOInterruptHandler_NEXT();
-
+  std::string getLogs();
+  void return_to_menu();
+  UIButton HOME;
 private:
+  UIButton HOME_BUTTON;
+  std::string logMessage;
+  std::function<void()> target;
+  int* supervisorMenuTargetIndex;
+  void prep_target();
+  void change_run_target();
   float _ver;
   bool _splashScrenDuringStartup;
   volatile bool _pendingButton;
@@ -42,7 +51,10 @@ private:
   void _trigger_return();
   void _trigger_select();
   void _trigger_next();
+  void _return_to_main_menu();
   SupervisorMenu OS_MENU;
+  AboutSystemInfo SYS_INFO;
+  std::vector<DesktopicoProgram*> myPrograms;
   DesktopicoProgram* _currentRunTarget;
   ProgramReturn* volatile returnedOutput;
   bool finalized;
