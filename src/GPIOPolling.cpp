@@ -15,10 +15,11 @@ alarm_pool_t* createAlarmPoolAs(int ID, int numOfAlarms){
 }
 
 alarm_pool_t* createAlarmPool(){
+
   return createAlarmPoolAs(3,16);
   
 }
 int createTimeout_single(alarm_pool_t *pool, uint32_t ms, alarm_callback_t callback, void *user_data, bool fire_if_past){
-  alarm_pool_add_alarm_in_ms(pool, ms, callback, user_data, fire_if_past);
+  return alarm_pool_add_alarm_in_ms(pool, ms, callback, user_data, fire_if_past);
 }
 

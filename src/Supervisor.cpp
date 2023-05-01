@@ -17,13 +17,18 @@ Supervisor::Supervisor(): OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 1
   _pendingButton = false;
   _pendingScreenRefresh = false;
   REQUIRED_BUTTONS = UIButtonSet();
-  
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
   std::function<void(void)> next_button_funct = std::bind(&Supervisor::_trigger_next, this);
+  std::function<void(void)> HOME_button_funct = std::bind(&Supervisor::_return_to_main_menu, this);
+  std::function<void(void)> HOME_button = std::bind(&Supervisor::return_to_menu, this);
  REQUIRED_BUTTONS.RETURN.setCallbackFunction(return_button_funct);
  REQUIRED_BUTTONS.SELECT.setCallbackFunction(select_button_funct);
  REQUIRED_BUTTONS.NEXT.setCallbackFunction(next_button_funct);
+ HOME_BUTTON = UIButton("OS_HOME");
+ HOME = HOME_BUTTON;
+ HOME_BUTTON.setCallbackFunction(HOME_button_funct);
+ HOME.setCallbackFunction(HOME_button);
 }
 
 Supervisor::Supervisor(DesktopicoProgram* programs): Supervisor(){
@@ -113,7 +118,7 @@ void Supervisor::startup(){
       hardwareDisplay->safe_output((char*)welcomeMsg.c_str());
       
     };
-  }
+  } 
   prep_target();
   
     
@@ -162,21 +167,28 @@ bool Supervisor::peekhasWork(){
 void Supervisor::_trigger_return(){
   _pendingButton = true;
   _pressedIndex = 0;
+  _currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
 }
 
 void Supervisor::_trigger_select(){
   _pendingButton = true;
   _pressedIndex = 1;
+  _currentRunTarget->ProgramDefinedButtons.SELECT.trigger_function();
 }
 
 void Supervisor::_trigger_next(){
-  _pendingButton = true;
-  _pressedIndex = 2;
+  //_pendingButton = true;
+  //_pressedIndex = 2;
+ // _return_to_main_menu();
+ _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
 }
 
 void Supervisor::_return_to_main_menu(){
-  //_pendingButton = true;
   _currentRunTarget = &OS_MENU;
+  run();
+  //hardwareDisplay->safe_output((const char*)x.c_str());
+  //_pendingButton = true;
+  //returnedOutput = OS_MENU.run((UIButtonSet*)nullptr);
 
 }
 

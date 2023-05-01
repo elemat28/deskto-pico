@@ -202,7 +202,7 @@ void LCUIDisplay::display_as_key_value_list(ProgramReturn* programOutput){
   if(*index == 0){
     begginingArrow = false;
   };
-  if (*index == strutDe->as_vector().size()-1)
+  if (*(unsigned int*)index == strutDe->as_vector().size()-1)
   {
     endArrow = false;
   };
@@ -241,7 +241,7 @@ void LCUIDisplay::display_as_simple_list(ProgramReturn* programOutput){
   if(*index == 0){
     begginingArrow = false;
   };
-  if (*index == strutDe->OPTIONS_VECTOR.size()-1)
+  if (*(unsigned int*)index == strutDe->OPTIONS_VECTOR.size()-1)
   {
     endArrow = false;
   };

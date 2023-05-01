@@ -48,11 +48,6 @@ struct KEY_VALUE_LIST_SIMPLE_STRUCT {
     return OPTIONS_VECTOR;
   }
   void auto_vector(){
-    if(OPTIONS_VECTOR.size() < 1){
-      auto itter = OPTIONS_MAP.end();
-
-     
-    }
   }
 };
 

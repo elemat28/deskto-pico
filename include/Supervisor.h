@@ -35,7 +35,9 @@ public:
   static void GPIOInterruptHandler_NEXT();
   std::string getLogs();
   void return_to_menu();
+  UIButton HOME;
 private:
+  UIButton HOME_BUTTON;
   std::string logMessage;
   std::function<void()> target;
   int* supervisorMenuTargetIndex;
