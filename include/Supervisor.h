@@ -35,6 +35,7 @@ public:
   static void GPIOInterruptHandler_NEXT();
 
 private:
+
   float _ver;
   bool _splashScrenDuringStartup;
   volatile bool _pendingButton;
@@ -44,6 +45,8 @@ private:
   void _trigger_select();
   void _trigger_next();
   SupervisorMenu OS_MENU;
+  AboutSystemInfo SYS_INFO;
+  std::vector<DesktopicoProgram*> myPrograms;
   DesktopicoProgram* _currentRunTarget;
   ProgramReturn* volatile returnedOutput;
   bool finalized;

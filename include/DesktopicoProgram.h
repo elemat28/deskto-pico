@@ -68,6 +68,8 @@ protected:
   //void setID(std::string programID);
 
 public:
+  virtual void init() = 0;
+  virtual ProgramReturn* run(UIButtonSet* availableButtons) = 0;
   SUPPORTED_FORMATS FORMAT_PRIORITY;
   UIButtonSet  ProgramDefinedButtons;
   bool hasDataBeenPassed();
@@ -75,11 +77,11 @@ public:
   //DesktopicoProgram(std::string program_ID);
   void pass_buttons(UIButton buttons[]);
   void pass_data(void* dataObject);
-  virtual void init() = 0;
-  virtual ProgramReturn* run(UIButtonSet* availableButtons) = 0;
   int getNumOfCharsInID();
   std::string static getID();
   static std::string ID;
+  static std::string display_as;
+  std::string static getDisplayableName();
 private:
  
 };

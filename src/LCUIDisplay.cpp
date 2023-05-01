@@ -129,16 +129,11 @@ void LCUIDisplay::safe_output(char* data){
 
 
  void LCUIDisplay::output_auto(ProgramReturn* programOutput){
-  int delulu = -1;
   if(programOutput->formatOfData == U_DEF){
-    OUTPUT_FORMAT* negotiated;
-    SUPPORTED_FORMATS* localFormats_ptr;
     OUTPUT_FORMAT MATCHED = U_DEF;
     if(programOutput->FORMAT_PREFERENCE == nullptr){
-      delulu = 0;
       return;
     } else {
-      //negotiated = negotiate_format(programOutput->FORMAT_PREFERENCE);
       auto programItter = programOutput->FORMAT_PREFERENCE->begin();
       auto endItter = programOutput->FORMAT_PREFERENCE->end();
       while(programItter != endItter){
@@ -159,7 +154,6 @@ void LCUIDisplay::safe_output(char* data){
       
     }
     if(MATCHED != U_DEF){
-    delulu = 64;
   } else {
     MATCHED = OUTPUT_FORMAT::BASE;
   };
@@ -172,19 +166,28 @@ void LCUIDisplay::safe_output(char* data){
 
 void LCUIDisplay::output(ProgramReturn* programOutput){
   if(programOutput->formatOfData == LIST_OPTIONS_SIMPLE){
+
     display_as_simple_list(programOutput);
   }
 }
 
 
 void LCUIDisplay::display_as_simple_list(ProgramReturn* programOutput){
+  
   int* index;
-  std::string ID = "NOT_PROCESSED";
+  std::string ID = "NO ID";
+  std::string ERROR = "LIST EMPTY";
   if(&programOutput->PROGRAM_ID != nullptr){
     ID = programOutput->PROGRAM_ID;
   };
   LIST_OPTIONS_SIMPLE_STRUCT* strutDe =(LIST_OPTIONS_SIMPLE_STRUCT*)programOutput->data;
   index = (strutDe->INDEX);
+  if(strutDe->OPTIONS_VECTOR.size()<1){
+    center_output_with_arrows(0, &ID, false, false);
+    center_output_with_arrows(1, &ERROR, false, false);
+  
+  
+  } else{
   if(*(index)<0){
     *(index) = 0;
   } else if (*index >= (int)(strutDe->OPTIONS_VECTOR.size()))
@@ -202,6 +205,7 @@ void LCUIDisplay::display_as_simple_list(ProgramReturn* programOutput){
   {
     endArrow = false;
   };
+
   center_output_with_arrows(0, &(strutDe->OPTIONS_VECTOR.at(*index)), begginingArrow, endArrow);
-  
+  }
   }

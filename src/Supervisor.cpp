@@ -3,8 +3,9 @@
 
 
 
-Supervisor::Supervisor(): OS_MENU() {
+Supervisor::Supervisor(): OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 1.0, "elemat28")) {
   _ver = 0.1;
+  BasicRequiredInfo info("DESKTO-PICO", 1.0, "elemat28");
   _splashScrenDuringStartup = true;
   temp_numOfPrograms = 0;
   _currentRunTarget = nullptr;
@@ -16,6 +17,7 @@ Supervisor::Supervisor(): OS_MENU() {
   _pendingButton = false;
   _pendingScreenRefresh = false;
   REQUIRED_BUTTONS = UIButtonSet();
+  //SYS_INFO = AboutSystemInfo(info);
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
   std::function<void(void)> next_button_funct = std::bind(&Supervisor::_trigger_next, this);
@@ -72,7 +74,9 @@ void Supervisor::finalize(){
     temp_hardwareDisplay->init();
   };
   hardwareDisplay = temp_hardwareDisplay;
-
+  //SYS_INFO = AboutSystemInfo(BasicRequiredInfo("DESKTOPICO", 0.1, "elemat28"));
+  //myPrograms.emplace_back(&SYS_INFO);
+  //OS_MENU.pass_data(&myPrograms);
   finalized = true;
   }
 }
@@ -89,13 +93,13 @@ void Supervisor::startup(){
       
     };
   }
-  hardwareDisplay->clear();
+  
   _currentRunTarget->init();
   returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
   hardwareDisplay->output_auto(returnedOutput);
+  hardwareDisplay->clear();
   _pendingScreenRefresh = true;
-  //hardwareDisplay->safe_output((char*)REQUIRED_BUTTONS.NEXT.first.c_str());
-  
+    
 }
 
 void Supervisor::run(){

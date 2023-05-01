@@ -1,6 +1,6 @@
 #ifndef UISUPRVSRMNU_H
 #define UISUPRVSRMNU_H
-#include "DeskopicoProgram.h"
+#include "DesktopicoProgram.h"
 class SupervisorMenu: public DesktopicoProgram
 {
 public:
@@ -13,10 +13,12 @@ public:
   void previous();
   void next();
   void init();
+
 protected:
   static std::string ID;
   std::string intToString(int value);
 private:
+  void processPassedDataToProgramList();
   std::vector<std::string> listOfPrograms;
   volatile int current_index;
   std::string message;

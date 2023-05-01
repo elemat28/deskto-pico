@@ -1,4 +1,4 @@
-#include "DeskopicoProgram.h"
+#include "DesktopicoProgram.h"
 
 bool DesktopicoProgram::hasDataBeenPassed(){
   return _hasDataBeenPassed;
@@ -32,4 +32,12 @@ int DesktopicoProgram::getNumOfCharsInID(){
  std::string DesktopicoProgram::getID(){
   return ID;
 };
+
+std::string DesktopicoProgram::getDisplayableName(){
+  if(display_as.empty()){
+    return ID;
+  } else {
+    return display_as;
+  }
+}
 

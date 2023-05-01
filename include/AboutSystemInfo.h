@@ -1,16 +1,31 @@
 #ifndef UISYSINFO_H
 #define UISYSINFO_H
-#include "DeskopicoProgram.h"
+#include "DesktopicoProgram.h"
 
-
+struct BasicRequiredInfo {
+  std::string OS_NAME;
+  float version;
+  std::string author_name;
+  BasicRequiredInfo(std::string project_name, float currentVersion, std::string author){
+    OS_NAME = project_name;
+    version = currentVersion;
+    author_name = author;
+  };
+};
 class AboutSystemInfo: public DesktopicoProgram
 {
 public:
+
 static std::string ID;
-  AboutSystemInfo();
-  ProgramReturn* run(UIButtonSet* availableButtons);
+static std::string displayAs;
+  AboutSystemInfo(BasicRequiredInfo baseInfo);
   std::map<std::string, std::string> systemDetails;
-protected:
+  void init();
+  ProgramReturn* run(UIButtonSet* availableButtons);
+  void select();
+  void previous();
+  void next();
+
   
 };
 
