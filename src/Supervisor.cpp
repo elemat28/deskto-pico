@@ -151,6 +151,10 @@ bool Supervisor::hasWork(){
   return checkresult;
 }
 
+void Supervisor::return_to_menu(){
+  _return_to_main_menu();
+}
+
 bool Supervisor::peekhasWork(){
   return (_pendingButton || _pendingScreenRefresh);
 }
@@ -168,6 +172,12 @@ void Supervisor::_trigger_select(){
 void Supervisor::_trigger_next(){
   _pendingButton = true;
   _pressedIndex = 2;
+}
+
+void Supervisor::_return_to_main_menu(){
+  //_pendingButton = true;
+  _currentRunTarget = &OS_MENU;
+
 }
 
 std::string Supervisor::getLogs(){

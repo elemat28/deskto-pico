@@ -29,11 +29,12 @@ public:
   void run_program(char name[]);
   int debugFunc();
   int debugFunc(void* data);
-   static void GPIOInterruptHandler_SINGULAR();
+  static void GPIOInterruptHandler_SINGULAR();
   static void GPIOInterruptHandler_RETURN();
   static void GPIOInterruptHandler_SELECT();
   static void GPIOInterruptHandler_NEXT();
   std::string getLogs();
+  void return_to_menu();
 private:
   std::string logMessage;
   std::function<void()> target;
@@ -48,6 +49,7 @@ private:
   void _trigger_return();
   void _trigger_select();
   void _trigger_next();
+  void _return_to_main_menu();
   SupervisorMenu OS_MENU;
   AboutSystemInfo SYS_INFO;
   std::vector<DesktopicoProgram*> myPrograms;

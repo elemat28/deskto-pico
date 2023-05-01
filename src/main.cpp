@@ -1,9 +1,14 @@
 #include "main.h"
 #define ALIVEMSGFREQSECS 2
+#define MENUHOLD_MS 1500
 absolute_time_t DeBounce;
 alarm_pool_t* sample;
 absolute_time_t timeStamp;
 repeating_timer rtInst;
+repeating_timer returnHomeTimer;
+absolute_time_t returnHomeTimestamp;
+alarm_pool_t* secondary_alarm_pool;
+bool holding = false;
 struct AlivePacket {
   
   std::string message;
@@ -166,6 +171,13 @@ bool repeatingPrintAliveFunct(repeating_timer* rt){
   return true;
 }
 
+bool returnHomeOnHold(repeating_timer* returnTimer){
+    if(holding){
+      uiSupervisor.return_to_menu();
+    }
+  return false;
+}
+
 void interruptFunction(void){
 
   for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
@@ -223,6 +235,15 @@ void setupInterrupts(){
   Serial.println("OK!");
 }
 
+int setupMainMenuOnHold(){
+  //returnHomeTimestamp = get_absolute_time();
+  if(createTimeout(sample, MENUHOLD_MS*10000, returnHomeOnHold, (void*)&holding, (repeating_timer_t*)&returnHomeTimer)){
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
 int setupAlivePrintToSerial(){
   if(createTimeout(sample, ALIVEMSGFREQSECS*1000000, repeatingPrintAliveFunct,(void*)&alivePacket, (repeating_timer_t*)&rtInst)){
     return 0;
@@ -230,6 +251,8 @@ int setupAlivePrintToSerial(){
     return 1;
   }
 }
+
+
 
 void x(){
   for (int i = 0; i < NUM_OF_DECLARED_PIN_BUTTONS; i++)
@@ -260,13 +283,22 @@ void Supervisor::GPIOInterruptHandler_SINGULAR(){
  DeBounce = make_timeout_time_ms(25);
   if(digitalRead(9) == HIGH){
     button_pressed = true;
-  uiSupervisor._trigger_return();
-  }else if (digitalRead(8) == HIGH)
-  {
+    if(!holding){
+       createTimeout_single(secondary_alarm_pool, MENUHOLD_MS, , &holding, true);
+    }
+    holding = true;
+    //returnHomeTimestamp = make_timeout_time_ms(MENUHOLD_MS);
+    ;
+    
+    uiSupervisor._trigger_return();
+  } else {
+    cancel_repeating_timer(&returnHomeTimer);
+    holding = false;
+  }
+  if (digitalRead(8) == HIGH){
   button_pressed = true;
   uiSupervisor._trigger_select();
-  }else if (digitalRead(7) == HIGH)
-  {
+  }else if (digitalRead(7) == HIGH){
     button_pressed = true;
   uiSupervisor._trigger_next();
   }
@@ -296,6 +328,7 @@ void setup() {
   Serial.begin(19200);
   DeBounce = make_timeout_time_ms(25);
   logFunctionResult("Pin Setup", pinSetup);
+  secondary_alarm_pool = createAlarmPoolAs(2, 16);
   //logFunctionResult("I2C 1602 LCD", ScreenSetup);
   logFunctionResult("UISupervisor init", createUISupervisor);
   logFunctionResult("UIDisplay instantiate", createUIdisplay);
