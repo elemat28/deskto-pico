@@ -1,8 +1,8 @@
 #include "AboutSystemInfo.h"
-std::string AboutSystemInfo::ID("OS_INFO");
-std::string AboutSystemInfo::displayAs("System INFO");
-AboutSystemInfo::AboutSystemInfo(BasicRequiredInfo baseInfo):DesktopicoProgram(ID) {
-    
+const std::string ID = ("OS_INFO");
+const std::string display_name = ("System INFO");
+AboutSystemInfo::AboutSystemInfo(BasicRequiredInfo baseInfo):DesktopicoProgram(static_ID, display_name) {
+
 }
  
 void AboutSystemInfo::init(){
@@ -13,6 +13,7 @@ void AboutSystemInfo::init(){
   ProgramDefinedButtons.SELECT.setCallbackFunction(select_button_funct);
   ProgramDefinedButtons.NEXT.setCallbackFunction(next_button_funct);
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
+
 }
 
 

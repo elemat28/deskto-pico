@@ -1,13 +1,14 @@
 #include "SupervisorMenu.h"
-std::string SupervisorMenu::ID("OS_MENU");
-SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID) {
+const std::string ID = std::string("OS_MENU");
+const std::string displayable = std::string("Main menu");
+SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID, displayable) {
 
   current_index = -1;
   
   FORMAT_PRIORITY = {LIST_OPTIONS_INDEXED, LIST_OPTIONS_SIMPLE, HEADING_LIST};
   ProgramDefinedButtons = UIButtonSet();
   //clear_value();
-  returnValue.PROGRAM_ID = ID;
+  returnValue.PROGRAM_ID = getID();
 
   returnValue.buttonSet = &ProgramDefinedButtons;
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
@@ -51,6 +52,7 @@ void SupervisorMenu::init(){
   ProgramDefinedButtons.SELECT.setCallbackFunction(select_button_funct);
   ProgramDefinedButtons.NEXT.setCallbackFunction(next_button_funct);
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
+  processPassedDataToProgramList();
   
 }
 
@@ -88,14 +90,15 @@ void SupervisorMenu::next(){
 
 void SupervisorMenu::processPassedDataToProgramList(){
   if(hasDataBeenPassed()){
-    std::vector<DesktopicoProgram>* LOL = (std::vector<DesktopicoProgram>*)getDataPtr();
-    auto itter = LOL->begin();
-    auto endOfVector = LOL->end();
-    while(itter!=endOfVector){
-      //listOfPrograms.emplace_back(*itter.);
+    std::vector<DesktopicoProgram*> LOL = *(std::vector<DesktopicoProgram*>*)getDataPtr();
+    auto itter = LOL.begin();
+    auto endOfVector = LOL.end();
+    while(itter != endOfVector){
+      listOfPrograms.emplace_back((*itter)->getDisplayableName());
       itter++;
     }
-  } else {
+  }
+  else {
   listOfPrograms.emplace_back("OPTION_1");
   listOfPrograms.emplace_back("OPTION2");
   listOfPrograms.emplace_back("OPTION_3X");

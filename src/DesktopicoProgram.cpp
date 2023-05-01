@@ -1,5 +1,6 @@
 #include "DesktopicoProgram.h"
 
+
 bool DesktopicoProgram::hasDataBeenPassed(){
   return _hasDataBeenPassed;
 }
@@ -8,7 +9,7 @@ void* DesktopicoProgram::getDataPtr(){
   return _dataObject;
 }
 
-DesktopicoProgram::DesktopicoProgram(std::string program_ID){
+DesktopicoProgram::DesktopicoProgram(std::string program_ID, std::string displayName) : static_ID(program_ID), displayAs(displayName){
   
   _hasDataBeenPassed = false;
   returnValue = ProgramReturn();
@@ -30,14 +31,14 @@ int DesktopicoProgram::getNumOfCharsInID(){
 
 
  std::string DesktopicoProgram::getID(){
-  return ID;
+  return static_ID;
 };
 
 std::string DesktopicoProgram::getDisplayableName(){
-  if(display_as.empty()){
-    return ID;
+  if(displayAs.empty()){
+    return static_ID;
   } else {
-    return display_as;
+    return displayAs;
   }
 }
 

@@ -15,7 +15,7 @@ public:
   void init();
 
 protected:
-  static std::string ID;
+  static std::string static_ID;
   std::string intToString(int value);
 private:
   void processPassedDataToProgramList();

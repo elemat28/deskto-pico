@@ -175,15 +175,15 @@ void LCUIDisplay::output(ProgramReturn* programOutput){
 void LCUIDisplay::display_as_simple_list(ProgramReturn* programOutput){
   
   int* index;
-  std::string ID = "NO ID";
+  std::string static_ID = "NO static_ID";
   std::string ERROR = "LIST EMPTY";
   if(&programOutput->PROGRAM_ID != nullptr){
-    ID = programOutput->PROGRAM_ID;
+    static_ID = programOutput->PROGRAM_ID;
   };
   LIST_OPTIONS_SIMPLE_STRUCT* strutDe =(LIST_OPTIONS_SIMPLE_STRUCT*)programOutput->data;
   index = (strutDe->INDEX);
   if(strutDe->OPTIONS_VECTOR.size()<1){
-    center_output_with_arrows(0, &ID, false, false);
+    center_output_with_arrows(0, &static_ID, false, false);
     center_output_with_arrows(1, &ERROR, false, false);
   
   

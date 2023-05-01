@@ -89,7 +89,7 @@ int pinSetup(){
 }
 
 int createUISupervisor(){
-  uiSupervisor = Supervisor();
+  
   return 0;
 }
 

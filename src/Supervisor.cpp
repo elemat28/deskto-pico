@@ -17,7 +17,7 @@ Supervisor::Supervisor(): OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 1
   _pendingButton = false;
   _pendingScreenRefresh = false;
   REQUIRED_BUTTONS = UIButtonSet();
-  //SYS_INFO = AboutSystemInfo(info);
+  
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
   std::function<void(void)> next_button_funct = std::bind(&Supervisor::_trigger_next, this);
@@ -74,9 +74,9 @@ void Supervisor::finalize(){
     temp_hardwareDisplay->init();
   };
   hardwareDisplay = temp_hardwareDisplay;
-  //SYS_INFO = AboutSystemInfo(BasicRequiredInfo("DESKTOPICO", 0.1, "elemat28"));
-  //myPrograms.emplace_back(&SYS_INFO);
-  //OS_MENU.pass_data(&myPrograms);
+  SYS_INFO.init();
+  myPrograms.emplace_back(&SYS_INFO);
+  OS_MENU.pass_data(&myPrograms);
   finalized = true;
   }
 }

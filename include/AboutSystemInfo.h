@@ -14,10 +14,9 @@ struct BasicRequiredInfo {
 };
 class AboutSystemInfo: public DesktopicoProgram
 {
-public:
 
-static std::string ID;
-static std::string displayAs;
+public:
+  
   AboutSystemInfo(BasicRequiredInfo baseInfo);
   std::map<std::string, std::string> systemDetails;
   void init();
@@ -25,6 +24,7 @@ static std::string displayAs;
   void select();
   void previous();
   void next();
+  
 
   
 };

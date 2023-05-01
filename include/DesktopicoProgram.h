@@ -73,15 +73,15 @@ public:
   SUPPORTED_FORMATS FORMAT_PRIORITY;
   UIButtonSet  ProgramDefinedButtons;
   bool hasDataBeenPassed();
-  DesktopicoProgram(std::string program_ID);
+  DesktopicoProgram(std::string program_ID, std::string displayName);
   //DesktopicoProgram(std::string program_ID);
   void pass_buttons(UIButton buttons[]);
   void pass_data(void* dataObject);
   int getNumOfCharsInID();
-  std::string static getID();
-  static std::string ID;
-  static std::string display_as;
-  std::string static getDisplayableName();
+  std::string getID();
+  const std::string static_ID;
+  const std::string displayAs;
+  virtual std::string getDisplayableName();
 private:
  
 };
