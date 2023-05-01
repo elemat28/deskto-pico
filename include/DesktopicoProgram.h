@@ -31,6 +31,32 @@ struct LIST_OPTIONS_SIMPLE_STRUCT {
   }
 };
 
+struct KEY_VALUE_LIST_SIMPLE_STRUCT {
+  int* INDEX;
+  std::map<std::string, std::string> OPTIONS_MAP;
+  std::vector<std::pair<std::string, std::string>> OPTIONS_VECTOR;
+  KEY_VALUE_LIST_SIMPLE_STRUCT(int* index, std::map<std::string, std::string> key_value){
+    INDEX = index;
+    OPTIONS_MAP = key_value;
+  }
+  KEY_VALUE_LIST_SIMPLE_STRUCT(){
+    INDEX = nullptr;
+    OPTIONS_VECTOR.clear();
+  }
+ std::vector<std::pair<std::string, std::string>> as_vector(){
+    auto_vector();
+    return OPTIONS_VECTOR;
+  }
+  void auto_vector(){
+    if(OPTIONS_VECTOR.size() < 1){
+      auto itter = OPTIONS_MAP.end();
+
+     
+    }
+  }
+};
+
+
 typedef std::vector<OUTPUT_FORMAT> SUPPORTED_FORMATS;
 struct ProgramReturn {
   std::string PROGRAM_ID;

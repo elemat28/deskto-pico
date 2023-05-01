@@ -334,7 +334,7 @@ void loop() {
   if(uiSupervisor.peekhasWork()){
     //Serial.println("Has work");
     uiSupervisor.run();
-    
+    Serial.println(uiSupervisor.getLogs().c_str());
   }
   
 

@@ -33,9 +33,13 @@ public:
   static void GPIOInterruptHandler_RETURN();
   static void GPIOInterruptHandler_SELECT();
   static void GPIOInterruptHandler_NEXT();
-
+  std::string getLogs();
 private:
-
+  std::string logMessage;
+  std::function<void()> target;
+  int* supervisorMenuTargetIndex;
+  void prep_target();
+  void change_run_target();
   float _ver;
   bool _splashScrenDuringStartup;
   volatile bool _pendingButton;

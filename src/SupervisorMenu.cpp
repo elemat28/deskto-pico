@@ -56,6 +56,14 @@ void SupervisorMenu::init(){
   
 }
 
+int* SupervisorMenu::set_supervisor_funct(std::function<void()> *target)
+{
+  supervisor_target = *target;
+  supervisor_target();
+  return(&current_index);
+}
+
+
 
 ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
   //previous();
@@ -76,6 +84,9 @@ void SupervisorMenu::previous(){
 
 
 void SupervisorMenu::select(){
+  if(&supervisor_target != nullptr){
+    supervisor_target();
+  }
   //message = std::string("SELECTED: ");
   //message.append(intToString(current_index));
 
@@ -89,6 +100,7 @@ void SupervisorMenu::next(){
 }
 
 void SupervisorMenu::processPassedDataToProgramList(){
+  
   if(hasDataBeenPassed()){
     std::vector<DesktopicoProgram*> LOL = *(std::vector<DesktopicoProgram*>*)getDataPtr();
     auto itter = LOL.begin();
@@ -97,9 +109,10 @@ void SupervisorMenu::processPassedDataToProgramList(){
       listOfPrograms.emplace_back((*itter)->getDisplayableName());
       itter++;
     }
+    listOfPrograms.emplace_back("OPTION_1");
   }
   else {
-  listOfPrograms.emplace_back("OPTION_1");
+  
   listOfPrograms.emplace_back("OPTION2");
   listOfPrograms.emplace_back("OPTION_3X");
   listOfPrograms.emplace_back("OPTION_4XX");

@@ -77,8 +77,29 @@ void Supervisor::finalize(){
   SYS_INFO.init();
   myPrograms.emplace_back(&SYS_INFO);
   OS_MENU.pass_data(&myPrograms);
+  target = [this](){ change_run_target(); };
+  supervisorMenuTargetIndex = OS_MENU.set_supervisor_funct(&target);
   finalized = true;
   }
+}
+
+void Supervisor::prep_target(){
+  _currentRunTarget->init();
+  returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
+  hardwareDisplay->output_auto(returnedOutput);
+  hardwareDisplay->clear();
+  _pendingScreenRefresh = true;
+}
+
+
+void Supervisor::change_run_target(){
+  if(supervisorMenuTargetIndex!= nullptr){
+    logMessage = std::to_string(*supervisorMenuTargetIndex);
+    _currentRunTarget = myPrograms.at(*supervisorMenuTargetIndex);
+
+    prep_target();
+    }
+   
 }
 
 void Supervisor::startup(){
@@ -93,12 +114,8 @@ void Supervisor::startup(){
       
     };
   }
+  prep_target();
   
-  _currentRunTarget->init();
-  returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
-  hardwareDisplay->output_auto(returnedOutput);
-  hardwareDisplay->clear();
-  _pendingScreenRefresh = true;
     
 }
 
@@ -151,6 +168,10 @@ void Supervisor::_trigger_select(){
 void Supervisor::_trigger_next(){
   _pendingButton = true;
   _pressedIndex = 2;
+}
+
+std::string Supervisor::getLogs(){
+  return logMessage;
 }
 
 int Supervisor::debugFunc(){

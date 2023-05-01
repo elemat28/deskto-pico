@@ -4,7 +4,7 @@ SUPPORTED_FORMATS LCUIDisplay::DISPLAY_FORMATS =
   //OPTION_BOOLEAN,
   LIST_OPTIONS_SIMPLE,
   //LIST_OPTIONS_INDEXED,
-  //KEY_VALUE_LIST_SIMPLE,
+  KEY_VALUE_LIST_SIMPLE,
   //KEY_VALUE_LIST_INDEXED,
   //KEY_OPTION_SCROLL,
   //KEY_OPTION_GRANULAR,
@@ -166,11 +166,51 @@ void LCUIDisplay::safe_output(char* data){
 
 void LCUIDisplay::output(ProgramReturn* programOutput){
   if(programOutput->formatOfData == LIST_OPTIONS_SIMPLE){
-
     display_as_simple_list(programOutput);
+  } else if (programOutput->formatOfData == KEY_VALUE_LIST_SIMPLE)
+  {
+    display_as_key_value_list(programOutput);
   }
+  
 }
 
+void LCUIDisplay::display_as_key_value_list(ProgramReturn* programOutput){
+  int* index;
+  std::string static_ID = "NO static_ID";
+  std::string ERROR = "LIST EMPTY";
+  if(&programOutput->PROGRAM_ID != nullptr){
+    static_ID = programOutput->PROGRAM_ID;
+  };
+  KEY_VALUE_LIST_SIMPLE_STRUCT* strutDe =(KEY_VALUE_LIST_SIMPLE_STRUCT*)programOutput->data;
+  index = (strutDe->INDEX);
+  if(strutDe->OPTIONS_MAP.size()<1){
+    center_output_with_arrows(0, &static_ID, false, false);
+    center_output_with_arrows(1, &ERROR, false, false);
+  
+  
+  } else{
+  if(*(index)<0){
+    *(index) = 0;
+  } else if (*index >= (int)(strutDe->as_vector().size()))
+  {
+    *index = strutDe->as_vector().size()-1;
+  };
+  screen.clear();
+  
+  bool begginingArrow = true;
+  bool endArrow = true;
+  if(*index == 0){
+    begginingArrow = false;
+  };
+  if (*index == strutDe->as_vector().size()-1)
+  {
+    endArrow = false;
+  };
+  
+  center_output_with_arrows(0, &strutDe->OPTIONS_VECTOR.at(*index).first, begginingArrow, endArrow);
+  center_output_with_arrows(1, &strutDe->OPTIONS_VECTOR.at(*index).second, false, false);
+  }
+  }
 
 void LCUIDisplay::display_as_simple_list(ProgramReturn* programOutput){
   

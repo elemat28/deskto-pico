@@ -16,7 +16,6 @@ class AboutSystemInfo: public DesktopicoProgram
 {
 
 public:
-  
   AboutSystemInfo(BasicRequiredInfo baseInfo);
   std::map<std::string, std::string> systemDetails;
   void init();
@@ -24,7 +23,9 @@ public:
   void select();
   void previous();
   void next();
-  
+private:
+  KEY_VALUE_LIST_SIMPLE_STRUCT return_data;
+  int index;
 
   
 };
