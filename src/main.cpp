@@ -353,12 +353,12 @@ int setupInitialAlarmPool(){
 
 bool repeatingPrintAliveFunct(repeating_timer* rt){
   AlivePacket* dataPtr = (AlivePacket*)(*rt).user_data;
-  if((*dataPtr).outstandingPrint == false){
+  
     (*dataPtr).message.clear();
     (*dataPtr).message.append("Runtime[seconds]: ");
     (*dataPtr).message.append(std::to_string((int)(time_us_64()/(1000*1000))).c_str());
     (*dataPtr).outstandingPrint = true;
-  } 
+    
   return true;
 };
 
@@ -407,7 +407,7 @@ int setupAlivePrintToSerial(){
 };
 
 int setupPollingRepeater(){
-  if(createTimeout(alarm_pool_secondary, 10000, repeatinHWPolling,(void*)&alivePacket, (repeating_timer_t*)&HWPollingTimer)){
+  if(createTimeout(alarm_pool_secondary, 10000, repeatinHWPolling,(void*)&GPIO_ARRAY, (repeating_timer_t*)&HWPollingTimer)){
     return 0;
   } else {
     return 1;
@@ -511,13 +511,12 @@ void loop() {
     timer_fired = false;
     addToLogs("Returning home...");
     uiSupervisor.HOME.trigger_function();
-  }; 
-  if(time_reached(printFreq)){
-    printFreq = make_timeout_time_ms(1000);
-  } else if(alivePacket.outstandingPrint){
+  };
+  if(alivePacket.outstandingPrint){
     alivePacket.outstandingPrint = false;
     addToLogs(alivePacket.message.c_str());
-  } else if(!queue_is_empty(&button_queue)){
+  };
+  if(!queue_is_empty(&button_queue)){
     PinReading reading = PinReading(0);
     queue_remove_blocking(&button_queue, &reading);
     switch (reading.gpio)
@@ -565,10 +564,9 @@ void loop() {
     
   };  
  
-  //Serial.println("//");
   uiSupervisor.run();
   logsToSerial();
-  while((logVector.empty() && queue_is_empty(&button_queue) && !timer_fired)){
+  while((logVector.empty() && !alivePacket.outstandingPrint && queue_is_empty(&button_queue) && !timer_fired)){
     sleep_ms(20);
    };
 };
