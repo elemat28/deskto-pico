@@ -82,22 +82,29 @@ void polling_alarm_callback_dual(){
         setupHoldAlarm();
         
       };
-      holdCounting = true;
       
-  }else if(holdCounting && (digitalRead(RETURN_GPIO)==HIGH) && time_reached(timeDelay)){
-    cancelHoldAlarm();
-    holdCounting = false;
+      
+  }else if(holdCounting && (digitalRead(RETURN_GPIO)==HIGH)){
+    timeDelay = make_timeout_time_ms(1);
+    busy_wait_until(timeDelay);
     GPIO_STATE_POLLING_ARRAY[RETURN_GPIO] = HIGH;
     button_pressed = true;
   }else if(digitalRead(SELECT_GPIO) == LOW){
+    timeDelay = make_timeout_time_ms(1);
+    busy_wait_until(timeDelay);
           GPIO_STATE_POLLING_ARRAY[SELECT_GPIO]  = HIGH;
           button_pressed = true;
   }else if(digitalRead(NEXT_GPIO) == LOW){
+    timeDelay = make_timeout_time_ms(1);
+    busy_wait_until(timeDelay);
           GPIO_STATE_POLLING_ARRAY[NEXT_GPIO]  = HIGH;
           button_pressed = true;
   };
   if(button_pressed == true){
     GPIO_ARRAY = GPIO_STATE_POLLING_ARRAY;
+    if(holdCounting){
+      cancelHoldAlarm();
+    }
   }
   timeDelay = make_timeout_time_ms(1);
   busy_wait_until(timeDelay);

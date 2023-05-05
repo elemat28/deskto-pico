@@ -5,7 +5,7 @@
 #include "UIButton.h"
 #include "GPIOPolling.h"
 #include "RotaryEncoder.h"
-#include "Timer.h"
+#include "TimerProgram.h"
 #include "Supervisor.h"
 
 volatile bool holding;
