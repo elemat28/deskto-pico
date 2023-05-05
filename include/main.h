@@ -7,6 +7,7 @@
 #include "RotaryEncoder.h"
 #include "TimerProgram.h"
 #include "Supervisor.h"
+#include "queue.h"
 
 volatile bool holding;
 volatile bool holdCounting;
@@ -26,6 +27,7 @@ pinButton* pinDictionary;
 alarm_pool_t* alarm_pool_primary;
 alarm_pool_t* alarm_pool_secondary;
 repeating_timer rtInst;
+repeating_timer HWPollingTimer;
 repeating_timer returnHomeTimer;
 absolute_time_t timeStamp;
 absolute_time_t returnHomeTimestamp;
