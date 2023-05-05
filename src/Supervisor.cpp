@@ -99,11 +99,11 @@ void Supervisor::prep_target(){
 
 void Supervisor::change_run_target(){
   if(supervisorMenuTargetIndex!= nullptr){
-    logMessage = std::to_string(*supervisorMenuTargetIndex);
+    if((-1 < *supervisorMenuTargetIndex) && (*supervisorMenuTargetIndex < myPrograms.size())){
     _currentRunTarget = myPrograms.at(*supervisorMenuTargetIndex);
-
     prep_target();
-    }
+    };
+  };
    
 }
 
