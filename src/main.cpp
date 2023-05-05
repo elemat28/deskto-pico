@@ -107,13 +107,15 @@ int startupSupervisor(){
 };
 
 void GPIOPollingInterrupt(){
-  
+  if(!button_pressed){
   auto itter = DEFINED_BUTTONS.begin();
     while(itter != DEFINED_BUTTONS.end()){
       GPIO_STATE[*itter] = digitalRead(*itter);
+      
       itter++;
     };
   button_pressed = true;
+  };
 };
 
 void GPIOInterruptHandler_SINGULAR(){
@@ -284,40 +286,6 @@ void setup() {
   DeBounce = make_timeout_time_ms(DEBOUNCE);
 };
 
-void oldHandler(){
- if(button_pressed){
-      button_pressed = false;  
-      if(time_reached(DeBounce)){
-        Serial.print("button_pressed[GPIO]: ");
-        Serial.print(std::to_string(GPIO).c_str());
-        Serial.print("@"); 
-        Serial.print(std::to_string(digitalRead(GPIO)).c_str());
-        Serial.println(" ");
-        if(GPIO > 0){
-        //button_pressed = false;
-        switch (GPIO)
-          {
-          case RETURN_GPIO:
-            uiSupervisor.REQUIRED_BUTTONS.RETURN.trigger_function();
-            break;
-          case SELECT_GPIO:
-            uiSupervisor.REQUIRED_BUTTONS.SELECT.trigger_function();
-            break;
-          case NEXT_GPIO:
-            uiSupervisor.REQUIRED_BUTTONS.NEXT.trigger_function();
-            break;
-          default:
-          GPIO = -1;
-            break;
-          };
-        };
-      
-      };
-      DeBounce = make_timeout_time_ms(DEBOUNCE);
-    };
-  
-};
-
 void loop() {
   
   while(!(time_reached(printFreq) || button_pressed || timer_fired || construct_alarm || destruct_alarm)){};
@@ -334,38 +302,45 @@ void loop() {
     alivePacket.outstandingPrint = false;
     Serial.println(alivePacket.message.c_str());
   } else if(button_pressed){
-    noInterrupts();
-    bool duplicate[32] = {false};
+    volatile bool duplicate[32] = {false};
     for (size_t i = 0; i < 32; i++)
     {
       duplicate[i] = GPIO_STATE[i];
     };
-    interrupts();
+    
+    Serial.print("[button_pressed]");
     if((duplicate[RETURN_GPIO] == LOW) && holdCounting){
+      Serial.print("[return_low&Counting]");
       cancelHoldAlarm();
       holdCounting = false;
       if(time_reached(DeBounce)){
-        Serial.println("return released");
+        Serial.print("[timeReached]");
+        //Serial.println("return released");
         uiSupervisor.REQUIRED_BUTTONS.RETURN.trigger_function();
+        DeBounce = make_timeout_time_ms(DEBOUNCE);
       };
       
     }else if(duplicate[RETURN_GPIO] == HIGH){
+      Serial.print("[returnHigh]");
       setupHoldAlarm();
       DeBounce = make_timeout_time_ms(15);
       button_pressed = false;
-    }else if(time_reached(DeBounce)){
+    }else if(time_reached(DeBounce) && button_pressed){
+      Serial.print("[NOT return]");
       if(duplicate[SELECT_GPIO] == HIGH){
-        Serial.println("SELECT PRESSED");
+        Serial.print("SELECT PRESSED");
         uiSupervisor.REQUIRED_BUTTONS.SELECT.trigger_function();
+        DeBounce = make_timeout_time_ms(DEBOUNCE);
       }else if(duplicate[NEXT_GPIO] == HIGH){
-        Serial.println("NEXT PRESSED");
+        Serial.print("NEXT PRESSED");
         uiSupervisor.REQUIRED_BUTTONS.NEXT.trigger_function();
+        DeBounce = make_timeout_time_ms(DEBOUNCE);
+      } else {
+        Serial.print("No matching HIGH!");
       }
     };
-    if(button_pressed){
-      DeBounce = make_timeout_time_ms(DEBOUNCE);
-      button_pressed = false;
-    };
+    button_pressed = false;
+    Serial.println("//");
   };
   uiSupervisor.run();
 };

@@ -126,7 +126,7 @@ void Supervisor::startup(){
 
 void Supervisor::run(){
   
-  returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
+  
   if(_pendingButton){
     _pendingButton = false;
     if(_pressedIndex == 0){
@@ -137,6 +137,7 @@ void Supervisor::run(){
       _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
     }
   }
+  returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
   hardwareDisplay->output_auto(returnedOutput);
   _pendingScreenRefresh = false;
   //hardwareDisplay->output_auto(returnedOutput);
@@ -167,20 +168,20 @@ bool Supervisor::peekhasWork(){
 void Supervisor::_trigger_return(){
   _pendingButton = true;
   _pressedIndex = 0;
-  _currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
+  //_currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
 }
 
 void Supervisor::_trigger_select(){
   _pendingButton = true;
   _pressedIndex = 1;
-  _currentRunTarget->ProgramDefinedButtons.SELECT.trigger_function();
+  //_currentRunTarget->ProgramDefinedButtons.SELECT.trigger_function();
 }
 
 void Supervisor::_trigger_next(){
-  //_pendingButton = true;
-  //_pressedIndex = 2;
+  _pendingButton = true;
+  _pressedIndex = 2;
  // _return_to_main_menu();
- _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
+ //_currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
 }
 
 void Supervisor::_return_to_main_menu(){
