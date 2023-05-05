@@ -129,6 +129,7 @@ void Supervisor::run(){
   
   if(_pendingButton){
     _pendingButton = false;
+    _pendingScreenRefresh = true;
     if(_pressedIndex == 0){
       _currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
     }else if(_pressedIndex == 1){
@@ -138,8 +139,12 @@ void Supervisor::run(){
     }
   }
   returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
-  hardwareDisplay->output_auto(returnedOutput);
-  _pendingScreenRefresh = false;
+  if(_pendingScreenRefresh){
+    _pendingScreenRefresh = false;
+    hardwareDisplay->output_auto(returnedOutput);
+  };
+  
+  
   //hardwareDisplay->output_auto(returnedOutput);
   
 }
@@ -186,6 +191,7 @@ void Supervisor::_trigger_next(){
 
 void Supervisor::_return_to_main_menu(){
   _currentRunTarget = &OS_MENU;
+  _pendingScreenRefresh = true;
   run();
   //hardwareDisplay->safe_output((const char*)x.c_str());
   //_pendingButton = true;
