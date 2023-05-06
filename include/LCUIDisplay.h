@@ -38,6 +38,7 @@ protected:
     std::vector<std::string> display_rows;
     void display_as_simple_list(ProgramReturn* programOtput);
     void display_as_key_value_list(ProgramReturn* programOtput);
+     void display_as_option_buttons(ProgramReturn* programOtput);
 private:
     typedef LiquidCrystal_I2C obj;
     LiquidCrystal_I2C screen;

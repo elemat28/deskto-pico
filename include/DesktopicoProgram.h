@@ -51,6 +51,17 @@ struct KEY_VALUE_LIST_SIMPLE_STRUCT {
   }
 };
 
+struct OPTION_BUTTONS_STRUCT {
+  std::string message;
+  UIButtonSet buttons;
+  OPTION_BUTTONS_STRUCT(){
+    message = std::string();
+    buttons = UIButtonSet();
+  };
+  OPTION_BUTTONS_STRUCT(std::string label_message): OPTION_BUTTONS_STRUCT(){
+    message = label_message;
+  };
+};
 
 typedef std::vector<OUTPUT_FORMAT> SUPPORTED_FORMATS;
 struct ProgramReturn {

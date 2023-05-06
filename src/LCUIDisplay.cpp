@@ -8,7 +8,7 @@ SUPPORTED_FORMATS LCUIDisplay::DISPLAY_FORMATS =
   //KEY_VALUE_LIST_INDEXED,
   //KEY_OPTION_SCROLL,
   //KEY_OPTION_GRANULAR,
-  //OPTION_BUTTONS,
+  OPTION_BUTTONS,
   //HEADING_LIST
   };
 LCUIDisplay::LCI2CDisplay_t LCUIDisplay::DEFAULTDISPLAYCONFIG = LCI2CDisplay_t();
@@ -170,8 +170,28 @@ void LCUIDisplay::output(ProgramReturn* programOutput){
   } else if (programOutput->formatOfData == KEY_VALUE_LIST_SIMPLE)
   {
     display_as_key_value_list(programOutput);
-  }
+  }else if (programOutput->formatOfData == OPTION_BUTTONS)
+  {
+    display_as_option_buttons(programOutput);
+  };
   
+}
+
+void LCUIDisplay::display_as_option_buttons(ProgramReturn* programOutput){
+  std::string static_ID = "NO static_ID";
+  std::string MESSAGE = std::string();
+  OPTION_BUTTONS_STRUCT* data_ptr = (OPTION_BUTTONS_STRUCT*)programOutput->data;
+  MESSAGE = data_ptr->message;
+  center_output(0, &MESSAGE);
+  MESSAGE = data_ptr->buttons.SELECT.print();
+  center_output(1, &MESSAGE);
+  screen.setCursor(0, 1);
+  screen.print(data_ptr->buttons.RETURN.print().c_str());
+  screen.setCursor(currentLCDConfig.columns - data_ptr->buttons.NEXT.print().length(), 1);
+  screen.print(data_ptr->buttons.NEXT.print().c_str());
+  
+  
+  //data_ptr->message
 }
 
 void LCUIDisplay::display_as_key_value_list(ProgramReturn* programOutput){

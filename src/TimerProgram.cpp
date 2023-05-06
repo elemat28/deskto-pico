@@ -3,9 +3,9 @@ const std::string ID = std::string("WORK_TIMER");
 const std::string displayable = std::string("Timers");
 TimerProgram::TimerProgram(): DesktopicoProgram(ID, displayable) {
 
-  current_index = -1;
-  
-  FORMAT_PRIORITY = {LIST_OPTIONS_INDEXED, LIST_OPTIONS_SIMPLE, HEADING_LIST};
+  current_screen = QUICKSELECT;
+  FORMAT_PRIORITY = {OPTION_BUTTONS};
+  //FORMAT_PRIORITY = {OPTION_BUTTONS, KEY_OPTION_SCROLL};
   ProgramDefinedButtons = UIButtonSet();
   //clear_value();
   returnValue.PROGRAM_ID = getID();
@@ -32,8 +32,8 @@ TimerProgram::TimerProgram(): DesktopicoProgram(ID, displayable) {
   
   ProgramDefinedButtons.NEXT = temp;
   
-  return_data = LIST_OPTIONS_SIMPLE_STRUCT((int*)&current_index, listOfPrograms);
-  returnValue.data = &return_data;
+  quickselect_return_data = OPTION_BUTTONS_STRUCT("TIMER LEN[MM:SS]");
+  returnValue.data = &quickselect_return_data;
 
   
  
@@ -52,7 +52,7 @@ void TimerProgram::init(){
   ProgramDefinedButtons.SELECT.setCallbackFunction(select_button_funct);
   ProgramDefinedButtons.NEXT.setCallbackFunction(next_button_funct);
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
-  processPassedDataToProgramList();
+  processPassedData();
   
 }
 
@@ -60,13 +60,12 @@ void TimerProgram::init(){
 
 
 ProgramReturn* TimerProgram::run(UIButtonSet* availableButtons){
-  //previous();
-  
-  return_data = LIST_OPTIONS_SIMPLE_STRUCT((int*)&current_index, listOfPrograms);
-  returnValue.data = &return_data;
+  quickselect_return_data = OPTION_BUTTONS_STRUCT("Select minutes");
+  quickselect_return_data.buttons.RETURN.setDisplayAs("15");
+  quickselect_return_data.buttons.SELECT.setDisplayAs("30");
+  quickselect_return_data.buttons.NEXT.setDisplayAs("CSTM");
+  returnValue.data = &quickselect_return_data;
   return &returnValue;
-  
-  
 }
 
 void TimerProgram::previous(){
@@ -93,7 +92,7 @@ void TimerProgram::next(){
 
 }
 
-void TimerProgram::processPassedDataToProgramList(){
+void TimerProgram::processPassedData(){
   
   if(hasDataBeenPassed()){
     std::vector<DesktopicoProgram*> LOL = *(std::vector<DesktopicoProgram*>*)getDataPtr();
@@ -105,15 +104,7 @@ void TimerProgram::processPassedDataToProgramList(){
     }
     listOfPrograms.emplace_back("OPTION_1");
   }
-  else {
-  
-  listOfPrograms.emplace_back("OPTION2");
-  listOfPrograms.emplace_back("OPTION_3X");
-  listOfPrograms.emplace_back("OPTION_4XX");
-  listOfPrograms.emplace_back("OPTION_5XXX");
-  listOfPrograms.emplace_back("OPTION_6XXXX");
-  listOfPrograms.emplace_back("OPTION_7XXXXX");
-  }
+
 }
 
 std::string TimerProgram::intToString(int value){

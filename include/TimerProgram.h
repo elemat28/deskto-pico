@@ -17,13 +17,19 @@ protected:
   static std::string static_ID;
   std::string intToString(int value);
 private:
+  enum SCREEN {
+    QUICKSELECT,
+    RUNNING,
+    CUSTOM
+  };
+  SCREEN current_screen;
   std::function<void()> supervisor_target;
-  void processPassedDataToProgramList();
+  void processPassedData();
   std::vector<std::string> listOfPrograms;
   int current_index;
   std::string message;
-  LIST_OPTIONS_SIMPLE_STRUCT return_data;
-
+  OPTION_BUTTONS_STRUCT quickselect_return_data;
+  
 
   
   
