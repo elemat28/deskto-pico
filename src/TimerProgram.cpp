@@ -1,7 +1,7 @@
-#include "SupervisorMenu.h"
-const std::string ID = std::string("OS_MENU");
-const std::string displayable = std::string("Main menu");
-SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID, displayable) {
+#include "TimerProgram.h"
+const std::string ID = std::string("WORK_TIMER");
+const std::string displayable = std::string("Timers");
+TimerProgram::TimerProgram(): DesktopicoProgram(ID, displayable) {
 
   current_index = -1;
   
@@ -40,11 +40,11 @@ SupervisorMenu::SupervisorMenu(): DesktopicoProgram(ID, displayable) {
 }
 
 
-SupervisorMenu::~SupervisorMenu(){
+TimerProgram::~TimerProgram(){
   
 }
 
-void SupervisorMenu::init(){
+void TimerProgram::init(){
   return_button_funct = [this](){ previous(); };
   select_button_funct = [this](){ select(); };
   next_button_funct = [this](){ next(); };
@@ -53,34 +53,13 @@ void SupervisorMenu::init(){
   ProgramDefinedButtons.NEXT.setCallbackFunction(next_button_funct);
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
   processPassedDataToProgramList();
-  if(get_number_of_available_programs()>1){
-    set_current_index(1);
-  }
-}
-
-int  SupervisorMenu::get_number_of_available_programs(){
-  return listOfPrograms.size();
-}
-
-bool SupervisorMenu::set_current_index(int index){
-  if((index < 0) || (index >= get_number_of_available_programs())){
-    return true;
-  } else {
-    current_index = index;
-    return false;
-  };
-}
-
-int* SupervisorMenu::set_supervisor_funct(std::function<void()> *target)
-{
-  supervisor_target = *target;
-  supervisor_target();
-  return(&current_index);
+  
 }
 
 
 
-ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
+
+ProgramReturn* TimerProgram::run(UIButtonSet* availableButtons){
   //previous();
   
   return_data = LIST_OPTIONS_SIMPLE_STRUCT((int*)&current_index, listOfPrograms);
@@ -90,7 +69,7 @@ ProgramReturn* SupervisorMenu::run(UIButtonSet* availableButtons){
   
 }
 
-void SupervisorMenu::previous(){
+void TimerProgram::previous(){
   current_index--;
   //message = intToString(current_index);
   //ProgramDefinedButtons.NEXT.setID("X");
@@ -98,7 +77,7 @@ void SupervisorMenu::previous(){
 }
 
 
-void SupervisorMenu::select(){
+void TimerProgram::select(){
   if(&supervisor_target != nullptr){
     supervisor_target();
   }
@@ -108,13 +87,13 @@ void SupervisorMenu::select(){
 }
 
 
-void SupervisorMenu::next(){
+void TimerProgram::next(){
   current_index++;
   //message = intToString(current_index);
 
 }
 
-void SupervisorMenu::processPassedDataToProgramList(){
+void TimerProgram::processPassedDataToProgramList(){
   
   if(hasDataBeenPassed()){
     std::vector<DesktopicoProgram*> LOL = *(std::vector<DesktopicoProgram*>*)getDataPtr();
@@ -123,8 +102,10 @@ void SupervisorMenu::processPassedDataToProgramList(){
     while(itter != endOfVector){
       listOfPrograms.emplace_back((*itter)->getDisplayableName());
       itter++;
-    };
-  }else {
+    }
+    listOfPrograms.emplace_back("OPTION_1");
+  }
+  else {
   
   listOfPrograms.emplace_back("OPTION2");
   listOfPrograms.emplace_back("OPTION_3X");
@@ -135,7 +116,7 @@ void SupervisorMenu::processPassedDataToProgramList(){
   }
 }
 
-std::string SupervisorMenu::intToString(int value){
+std::string TimerProgram::intToString(int value){
   return std::to_string(value);
 }
 

@@ -42,14 +42,13 @@ Supervisor::~Supervisor(){
 int Supervisor::setBaseButtonGPIO(UIButton button, int GPIO){
   return 1;
 }
-
-void Supervisor::add_function(DesktopicoProgram* program){
-  if(finalized ||(temp_numOfPrograms >= UISUPRVSRMAXPRGRMS)){
-    abort();
-  }
-  programDeclarations[temp_numOfPrograms] = program;
-  temp_numOfPrograms++;
-
+DesktopicoProgram* globalProgramLol;
+void Supervisor::add_program(DesktopicoProgram* program, size_t programSize){
+  void* allocated_with_malloc = malloc(programSize);
+  memcpy(allocated_with_malloc, program, programSize);
+  DesktopicoProgram* ptr = (DesktopicoProgram*)allocated_with_malloc;
+  myPrograms.emplace_back(ptr);
+  
 }
 
 void Supervisor::set_UIDisplay(UIDisplayHandler* display){
@@ -80,7 +79,7 @@ void Supervisor::finalize(){
   };
   hardwareDisplay = temp_hardwareDisplay;
   SYS_INFO.init();
-  myPrograms.emplace_back(&SYS_INFO);
+  myPrograms.emplace(myPrograms.begin(),&SYS_INFO);
   OS_MENU.pass_data(&myPrograms);
   target = [this](){ change_run_target(); };
   supervisorMenuTargetIndex = OS_MENU.set_supervisor_funct(&target);
@@ -99,11 +98,11 @@ void Supervisor::prep_target(){
 
 void Supervisor::change_run_target(){
   if(supervisorMenuTargetIndex!= nullptr){
-    logMessage = std::to_string(*supervisorMenuTargetIndex);
+    if((-1 < *supervisorMenuTargetIndex) && ((long)*supervisorMenuTargetIndex < (long)myPrograms.size())){
     _currentRunTarget = myPrograms.at(*supervisorMenuTargetIndex);
-
     prep_target();
-    }
+    };
+  };
    
 }
 
@@ -126,9 +125,10 @@ void Supervisor::startup(){
 
 void Supervisor::run(){
   
-  returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
+  
   if(_pendingButton){
     _pendingButton = false;
+    _pendingScreenRefresh = true;
     if(_pressedIndex == 0){
       _currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
     }else if(_pressedIndex == 1){
@@ -137,8 +137,13 @@ void Supervisor::run(){
       _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
     }
   }
-  hardwareDisplay->output_auto(returnedOutput);
-  _pendingScreenRefresh = false;
+  returnedOutput = _currentRunTarget->run((UIButtonSet*)nullptr);
+  if(_pendingScreenRefresh){
+    _pendingScreenRefresh = false;
+    hardwareDisplay->output_auto(returnedOutput);
+  };
+  
+  
   //hardwareDisplay->output_auto(returnedOutput);
   
 }
@@ -167,24 +172,25 @@ bool Supervisor::peekhasWork(){
 void Supervisor::_trigger_return(){
   _pendingButton = true;
   _pressedIndex = 0;
-  _currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
+  //_currentRunTarget->ProgramDefinedButtons.RETURN.trigger_function();
 }
 
 void Supervisor::_trigger_select(){
   _pendingButton = true;
   _pressedIndex = 1;
-  _currentRunTarget->ProgramDefinedButtons.SELECT.trigger_function();
+  //_currentRunTarget->ProgramDefinedButtons.SELECT.trigger_function();
 }
 
 void Supervisor::_trigger_next(){
-  //_pendingButton = true;
-  //_pressedIndex = 2;
+  _pendingButton = true;
+  _pressedIndex = 2;
  // _return_to_main_menu();
- _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
+ //_currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
 }
 
 void Supervisor::_return_to_main_menu(){
   _currentRunTarget = &OS_MENU;
+  _pendingScreenRefresh = true;
   run();
   //hardwareDisplay->safe_output((const char*)x.c_str());
   //_pendingButton = true;

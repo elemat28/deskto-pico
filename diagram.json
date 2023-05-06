@@ -21,26 +21,26 @@
     {
       "type": "wokwi-pushbutton",
       "id": "btn1",
-      "top": 223.86,
+      "top": 220.38,
       "left": 364.18,
-      "rotate": 90,
-      "attrs": { "color": "yellow" }
+      "rotate": 180,
+      "attrs": { "color": "yellow", "key": "q" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn2",
-      "top": 224.12,
-      "left": 447.16,
-      "rotate": 90,
-      "attrs": { "color": "green" }
+      "top": 220.33,
+      "left": 448.53,
+      "rotate": 180,
+      "attrs": { "color": "green", "key": "w" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn3",
-      "top": 224.45,
-      "left": 531.67,
-      "rotate": 90,
-      "attrs": { "color": "blue" }
+      "top": 220.59,
+      "left": 532.43,
+      "rotate": 180,
+      "attrs": { "color": "blue", "key": "e" }
     },
     {
       "type": "wokwi-rgb-led",
@@ -77,49 +77,34 @@
     {
       "type": "wokwi-resistor",
       "id": "r2",
-      "top": 397.32,
-      "left": 207.6,
-      "rotate": 90,
-      "attrs": { "value": "1000" }
+      "top": 399.52,
+      "left": 223.54,
+      "rotate": 270,
+      "attrs": { "value": "4700" }
     },
     {
       "type": "wokwi-resistor",
       "id": "r3",
-      "top": 209.18,
-      "left": 254,
-      "rotate": 180,
-      "attrs": { "value": "10000" }
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r4",
-      "top": 397.39,
-      "left": 222.09,
-      "rotate": 90,
-      "attrs": { "value": "1000" }
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r5",
-      "top": 397.46,
-      "left": 238.26,
-      "rotate": 90,
-      "attrs": { "value": "1000" }
-    },
-    {
-      "type": "wokwi-gnd",
-      "id": "gnd2",
-      "top": 390.83,
-      "left": 289.84,
-      "rotate": 180,
-      "attrs": {}
+      "top": 399.51,
+      "left": 238.57,
+      "rotate": 270,
+      "attrs": { "value": "4700" }
     },
     {
       "type": "wokwi-resistor",
       "id": "r1",
-      "top": 283.61,
-      "left": 237.68,
-      "attrs": { "value": "10000" }
+      "top": 398.96,
+      "left": 207.96,
+      "rotate": 270,
+      "attrs": { "value": "4700" }
+    },
+    {
+      "type": "wokwi-vcc",
+      "id": "vcc2",
+      "top": 447.75,
+      "left": 243.14,
+      "rotate": 180,
+      "attrs": {}
     }
   ],
   "connections": [
@@ -137,20 +122,19 @@
     [ "lcd1:SCL", "pico:GP5", "green", [ "h-144.92", "v227.28" ] ],
     [ "lcd1:SDA", "pico:GP4", "green", [ "h-154.45", "v243.7" ] ],
     [ "gnd1:GND", "encoder1:GND", "black", [ "v0" ] ],
-    [ "gnd2:GND", "r5:2", "black", [ "v0" ] ],
-    [ "r5:2", "r4:2", "black", [ "h0" ] ],
-    [ "r4:2", "r2:2", "black", [ "h0" ] ],
-    [ "pico:GP9", "r5:1", "yellow", [ "h0" ] ],
-    [ "pico:GP8", "r4:1", "green", [ "h0" ] ],
-    [ "pico:GP7", "r2:1", "blue", [ "h0" ] ],
-    [ "r1:2", "encoder1:VCC", "red", [ "v0" ] ],
-    [ "vcc1:VCC", "r3:2", "red", [ "v0" ] ],
-    [ "r3:1", "btn1:2.l", "red", [ "v0" ] ],
     [ "btn1:1.r", "pico:GP9", "yellow", [ "v0" ] ],
     [ "btn2:1.r", "pico:GP8", "green", [ "v0" ] ],
     [ "btn3:1.r", "pico:GP7", "blue", [ "v0" ] ],
-    [ "r3:1", "btn2:2.l", "green", [ "v0" ] ],
-    [ "r3:1", "btn3:2.l", "green", [ "v0" ] ]
+    [ "pico:GP8", "r4:1", "green", [ "h0" ] ],
+    [ "pico:GND.3", "btn1:2.r", "black", [ "h151.59", "v-89.53" ] ],
+    [ "btn1:2.l", "btn2:2.r", "black", [ "h0" ] ],
+    [ "btn2:2.l", "btn3:2.r", "black", [ "h0" ] ],
+    [ "r1:1", "vcc2:VCC", "red", [ "h0" ] ],
+    [ "r2:1", "vcc2:VCC", "red", [ "h0" ] ],
+    [ "r3:1", "vcc2:VCC", "red", [ "h0" ] ],
+    [ "pico:GP7", "r1:2", "blue", [ "h0" ] ],
+    [ "pico:GP8", "r2:2", "green", [ "h0" ] ],
+    [ "pico:GP9", "r3:2", "yellow", [ "h0" ] ]
   ],
   "serialMonitor": { "display": "terminal", "newline": "lf" },
   "dependencies": {}
