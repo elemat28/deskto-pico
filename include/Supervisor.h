@@ -5,6 +5,7 @@
 #include "SupervisorMenu.h"
 #include "UIDisplayHandler.h" 
 #include <cstring>
+#include <pico/time.h>
 #ifndef UISUPRVSRMAXPRGRMS
 #define UISUPRVSRMAXPRGRMS 6
 #endif
@@ -19,21 +20,22 @@ public:
   Supervisor(DesktopicoProgram* programs);
   ~Supervisor();
   int setBaseButtonGPIO(UIButton button, int GPIO);
+  bool splashScreenDuringStartup();
+  void splashScreenDuringStartup(bool newSettting);
+  int  splashScreen_min_ms();
+  void splashScreen_min_ms(int minimum_ms);
   void add_program(DesktopicoProgram* program, size_t programSize);
   void set_UIDisplay(UIDisplayHandler* display);
   void set_startup_program(char name[]);
+  void startup_begin();
   void finalize();
-  void startup();
+  void startup_finish();
   void run();
   bool hasWork();
   bool peekhasWork();
   void run_program(char name[]);
   int debugFunc();
   int debugFunc(void* data);
-  static void GPIOInterruptHandler_SINGULAR();
-  static void GPIOInterruptHandler_RETURN();
-  static void GPIOInterruptHandler_SELECT();
-  static void GPIOInterruptHandler_NEXT();
   std::string getLogs();
   void return_to_menu();
   UIButton HOME;
@@ -45,7 +47,9 @@ private:
   void prep_target();
   void change_run_target();
   float _ver;
-  bool _splashScrenDuringStartup;
+  absolute_time_t _endOfSplashScreen;
+  bool _splashScreenDuringStartup;
+  unsigned int _splashScreenMinLenMS;
   volatile bool _pendingButton;
   volatile int _pressedIndex;
   bool _pendingScreenRefresh;

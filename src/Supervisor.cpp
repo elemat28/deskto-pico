@@ -6,7 +6,8 @@
 Supervisor::Supervisor(): OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 1.0, "elemat28")) {
   _ver = 0.1;
   BasicRequiredInfo info("DESKTO-PICO", 1.0, "elemat28");
-  _splashScrenDuringStartup = true;
+  _splashScreenDuringStartup = true;
+  _splashScreenMinLenMS = 500;
   temp_numOfPrograms = 0;
   _currentRunTarget = nullptr;
   temp_startupTarget = nullptr;
@@ -42,7 +43,23 @@ Supervisor::~Supervisor(){
 int Supervisor::setBaseButtonGPIO(UIButton button, int GPIO){
   return 1;
 }
-DesktopicoProgram* globalProgramLol;
+
+bool Supervisor::splashScreenDuringStartup(){
+  return _splashScreenDuringStartup;
+}
+
+void Supervisor::splashScreenDuringStartup(bool newSettting){
+  _splashScreenDuringStartup = newSettting;
+}
+
+int Supervisor::splashScreen_min_ms(){
+  return _splashScreenMinLenMS;
+}
+
+void Supervisor::splashScreen_min_ms(int minimum_ms){
+  _splashScreenMinLenMS = minimum_ms;
+}
+
 void Supervisor::add_program(DesktopicoProgram* program, size_t programSize){
   void* allocated_with_malloc = malloc(programSize);
   memcpy(allocated_with_malloc, program, programSize);
@@ -53,6 +70,13 @@ void Supervisor::add_program(DesktopicoProgram* program, size_t programSize){
 
 void Supervisor::set_UIDisplay(UIDisplayHandler* display){
   temp_hardwareDisplay = display;
+  if(_splashScreenDuringStartup){
+    temp_hardwareDisplay->init();
+    std::string welcomeMsg = "Starting...";
+    temp_hardwareDisplay->safe_output((char*)welcomeMsg.c_str());
+      
+  };
+
 }
 
 void Supervisor::set_startup_program(char name[]){
@@ -106,21 +130,21 @@ void Supervisor::change_run_target(){
    
 }
 
-void Supervisor::startup(){
+void Supervisor::startup_begin(){
+  if(_splashScreenDuringStartup){
+    _endOfSplashScreen = make_timeout_time_ms(_splashScreenMinLenMS);
+  }; 
+}
+
+void Supervisor::startup_finish(){
   if(!finalized){
     abort();
   }
-  if(_splashScrenDuringStartup){
-    if(hardwareDisplay != nullptr){
-      std::string welcomeMsg = "Starting...";
-      welcomeMsg.append(std::to_string(_ver));
-      hardwareDisplay->safe_output((char*)welcomeMsg.c_str());
-      
-    };
-  } 
   prep_target();
+  if(_splashScreenDuringStartup){
+    sleep_until(_endOfSplashScreen);
+  };
   
-    
 }
 
 void Supervisor::run(){
