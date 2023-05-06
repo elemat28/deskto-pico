@@ -53,7 +53,22 @@ void SupervisorMenu::init(){
   ProgramDefinedButtons.NEXT.setCallbackFunction(next_button_funct);
   returnValue.FORMAT_PREFERENCE = &FORMAT_PRIORITY;
   processPassedDataToProgramList();
-  
+  if(get_number_of_available_programs()>1){
+    set_current_index(1);
+  }
+}
+
+int  SupervisorMenu::get_number_of_available_programs(){
+  return listOfPrograms.size();
+}
+
+bool SupervisorMenu::set_current_index(int index){
+  if((index < 0) || (index >= get_number_of_available_programs())){
+    return true;
+  } else {
+    current_index = index;
+    return false;
+  };
 }
 
 int* SupervisorMenu::set_supervisor_funct(std::function<void()> *target)
@@ -108,10 +123,8 @@ void SupervisorMenu::processPassedDataToProgramList(){
     while(itter != endOfVector){
       listOfPrograms.emplace_back((*itter)->getDisplayableName());
       itter++;
-    }
-    listOfPrograms.emplace_back("OPTION_1");
-  }
-  else {
+    };
+  }else {
   
   listOfPrograms.emplace_back("OPTION2");
   listOfPrograms.emplace_back("OPTION_3X");

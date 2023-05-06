@@ -449,6 +449,12 @@ void Supervisor::GPIOInterruptHandler_NEXT(){
   uiSupervisor._trigger_next();
 };
 
+int addPrograms(){
+  uiSupervisor.add_program(new TimerProgram, sizeof(TimerProgram));
+
+  return 0;
+};
+
 void setup() {
   
   USBSetup();
@@ -470,11 +476,11 @@ void setup() {
   bounceBuffer = get_absolute_time();
   queue_init(&button_queue, sizeof(PinReading), 2);
   logFunctionResult("Pin Setup", pinSetup);
-
   //logFunctionResult("I2C 1602 LCD", ScreenSetup);
   //logFunctionResult("UISupervisor init", createUISupervisor);
   logFunctionResult("UIDisplay instantiate", createUIdisplay);
   logFunctionResult("Add display to supervisor", addDisplayToSupervisor);
+  logFunctionResult("add Programs", addPrograms);
   logFunctionResult("Finalize Supervisor", finalizeSupervisor);
   logFunctionResult("Initial Alarm Pool setup", setupInitialAlarmPool);
   //assignFunctionsToButtons();

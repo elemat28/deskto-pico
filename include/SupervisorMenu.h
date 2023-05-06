@@ -14,6 +14,8 @@ public:
   void next();
   void init();
   int* set_supervisor_funct(std::function<void()>* target);
+  int  get_number_of_available_programs();
+  bool set_current_index(int index);
 protected:
   static std::string static_ID;
   std::string intToString(int value);

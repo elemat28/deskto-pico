@@ -4,6 +4,7 @@
 #include "AboutSystemInfo.h"
 #include "SupervisorMenu.h"
 #include "UIDisplayHandler.h" 
+#include <cstring>
 #ifndef UISUPRVSRMAXPRGRMS
 #define UISUPRVSRMAXPRGRMS 6
 #endif
@@ -18,7 +19,7 @@ public:
   Supervisor(DesktopicoProgram* programs);
   ~Supervisor();
   int setBaseButtonGPIO(UIButton button, int GPIO);
-  void add_function(DesktopicoProgram* program);
+  void add_program(DesktopicoProgram* program, size_t programSize);
   void set_UIDisplay(UIDisplayHandler* display);
   void set_startup_program(char name[]);
   void finalize();

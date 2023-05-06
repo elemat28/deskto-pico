@@ -6,14 +6,13 @@ class TimerProgram: public DesktopicoProgram
 {
 public:
   TimerProgram();
-  TimerProgram(DesktopicoProgram* programs);
   ~TimerProgram();
- ProgramReturn* run(UIButtonSet* availableButtons);
+  ProgramReturn* run(UIButtonSet* availableButtons);
   void select();
   void previous();
   void next();
   void init();
-  int* set_supervisor_funct(std::function<void()>* target);
+  
 protected:
   static std::string static_ID;
   std::string intToString(int value);

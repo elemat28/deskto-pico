@@ -56,12 +56,6 @@ void TimerProgram::init(){
   
 }
 
-int* TimerProgram::set_supervisor_funct(std::function<void()> *target)
-{
-  supervisor_target = *target;
-  supervisor_target();
-  return(&current_index);
-}
 
 
 

@@ -42,14 +42,13 @@ Supervisor::~Supervisor(){
 int Supervisor::setBaseButtonGPIO(UIButton button, int GPIO){
   return 1;
 }
-
-void Supervisor::add_function(DesktopicoProgram* program){
-  if(finalized ||(temp_numOfPrograms >= UISUPRVSRMAXPRGRMS)){
-    abort();
-  }
-  programDeclarations[temp_numOfPrograms] = program;
-  temp_numOfPrograms++;
-
+DesktopicoProgram* globalProgramLol;
+void Supervisor::add_program(DesktopicoProgram* program, size_t programSize){
+  void* allocated_with_malloc = malloc(programSize);
+  memcpy(allocated_with_malloc, program, programSize);
+  DesktopicoProgram* ptr = (DesktopicoProgram*)allocated_with_malloc;
+  myPrograms.emplace_back(ptr);
+  
 }
 
 void Supervisor::set_UIDisplay(UIDisplayHandler* display){
@@ -80,7 +79,7 @@ void Supervisor::finalize(){
   };
   hardwareDisplay = temp_hardwareDisplay;
   SYS_INFO.init();
-  myPrograms.emplace_back(&SYS_INFO);
+  myPrograms.emplace(myPrograms.begin(),&SYS_INFO);
   OS_MENU.pass_data(&myPrograms);
   target = [this](){ change_run_target(); };
   supervisorMenuTargetIndex = OS_MENU.set_supervisor_funct(&target);
@@ -99,7 +98,7 @@ void Supervisor::prep_target(){
 
 void Supervisor::change_run_target(){
   if(supervisorMenuTargetIndex!= nullptr){
-    if((-1 < *supervisorMenuTargetIndex) && (*supervisorMenuTargetIndex < myPrograms.size())){
+    if((-1 < *supervisorMenuTargetIndex) && ((long)*supervisorMenuTargetIndex < (long)myPrograms.size())){
     _currentRunTarget = myPrograms.at(*supervisorMenuTargetIndex);
     prep_target();
     };

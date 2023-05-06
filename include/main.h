@@ -8,7 +8,7 @@
 #include "TimerProgram.h"
 #include "Supervisor.h"
 #include "queue.h"
-
+#include "pico/multicore.h"
 volatile bool holding;
 volatile bool holdCounting;
 volatile bool callbackResult;
