@@ -179,7 +179,6 @@ bool repeatingRefresh(repeating_timer *rt)
 
 int64_t supervisor_alarm_callback(alarm_id_t id, void *user_data)
 {
-  auto data = (RefreshTimerData *)user_data;
   *((RefreshTimerData *)user_data)->screenRefreshPending = true;
   return 0;
 };
