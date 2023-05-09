@@ -232,6 +232,11 @@ void Supervisor::run()
       _refresh_alarm_ID = 0;
     };
     _pendingScreenRefresh = false;
+    if (returnedOutput->formatOfData == U_DEF)
+    {
+      hardwareDisplay->output_auto(returnedOutput);
+      returnedOutput = _currentRunTarget->run((int *)&_program_refresh_ms);
+    };
     hardwareDisplay->output_auto(returnedOutput);
   };
 };

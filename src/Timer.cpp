@@ -30,6 +30,11 @@ void Timer::_update(void)
   if (_currentStatus == ACTIVE)
   {
     _secondsLeft -= absolute_time_diff_us(_lastUpdate, stamp) / 1000000;
+    if (_secondsLeft <= 0)
+    {
+      _currentStatus = FINISHED;
+      _secondsLeft = 0;
+    }
     _lastUpdate = stamp;
   }
 }
@@ -61,6 +66,7 @@ void Timer::reset()
 
 TimerStatus Timer::getStatus()
 {
+  _update();
   return _currentStatus;
 }
 

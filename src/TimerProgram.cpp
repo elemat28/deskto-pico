@@ -38,6 +38,7 @@ TimerProgram::TimerProgram() : DesktopicoProgram(ID, displayable), timerObject(0
 
   // quickselect_return_data = OPTION_BUTTONS_STRUCT("TIMER LEN[MM:SS]");
   // returnValue.data = &quickselect_return_data;
+  custom_timer_len = 30;
 }
 
 TimerProgram::~TimerProgram()
@@ -59,8 +60,9 @@ void TimerProgram::init()
   quickselect_return = returnValue;
   running_return = returnValue;
   custom_return = returnValue;
-  processPassedData();
+  custom_timer_len = 30;
   timerObject = Timer(0);
+  processPassedData();
   current_screen = QUICKSELECT;
 }
 
@@ -80,11 +82,7 @@ ProgramReturn *TimerProgram::run(int *refresh_ms)
     break;
 
   case CUSTOM:
-    quickselect_return_data_as_option_buttons = OPTION_BUTTONS_STRUCT("Select minutes");
-    quickselect_return_data_as_option_buttons.buttons.RETURN.setDisplayAs("15");
-    quickselect_return_data_as_option_buttons.buttons.SELECT.setDisplayAs("30");
-    quickselect_return_data_as_option_buttons.buttons.NEXT.setDisplayAs("CSTM");
-    quickselect_return.data = &quickselect_return_data_as_option_buttons;
+    CUSTOM_configure();
     return &custom_return;
     break;
 
@@ -167,6 +165,9 @@ void TimerProgram::QUICKSELECT_configure()
                                                    {  create_timer(30*60);
                                                       timerObject.start();
                                                       RUNNING_configure(); });
+  ProgramDefinedButtons.NEXT.setCallbackFunction([this]()
+                                                 { CUSTOM_configure(); });
+
   quickselect_return.data = &quickselect_return_data_as_option_buttons;
 }
 
@@ -213,4 +214,25 @@ void TimerProgram::RUNNING_configure()
   };
 
   running_return.data = &running_return_data_as_option_buttons;
+}
+
+void TimerProgram::CUSTOM_configure()
+{
+  current_screen = CUSTOM;
+  create_timer(custom_timer_len);
+  custom_return_data_as_option_buttons = OPTION_BUTTONS_STRUCT(formatTimerTimeLeftToString(&timerObject));
+  custom_return_data_as_option_buttons.buttons.RETURN.setDisplayAs("-15S");
+  custom_return_data_as_option_buttons.buttons.SELECT.setDisplayAs("OK");
+  custom_return_data_as_option_buttons.buttons.NEXT.setDisplayAs("+30S");
+  ProgramDefinedButtons.RETURN.setCallbackFunction([this]()
+                                                   {  if((custom_timer_len - 15 )> 0){
+                                                    custom_timer_len -= 15;
+                                                   }; });
+  ProgramDefinedButtons.SELECT.setCallbackFunction([this]()
+                                                   {  create_timer(custom_timer_len);
+                                                      timerObject.start();
+                                                      RUNNING_configure(); });
+  ProgramDefinedButtons.NEXT.setCallbackFunction([this]()
+                                                 { custom_timer_len += 30; });
+  custom_return.data = &custom_return_data_as_option_buttons;
 }

@@ -36,6 +36,7 @@ private:
   std::string message;
   OPTION_BUTTONS_STRUCT quickselect_return_data_as_option_buttons;
   OPTION_BUTTONS_STRUCT running_return_data_as_option_buttons;
+  OPTION_BUTTONS_STRUCT custom_return_data_as_option_buttons;
   void create_timer(int seconds);
   std::string formatTimerTimeLeftToString(Timer *timerObj);
 
@@ -48,6 +49,9 @@ private:
   void RUNNING_button_return();
   void RUNNING_button_select();
   void RUNNING_button_next();
+
+  void CUSTOM_configure();
+  int custom_timer_len;
 };
 
 #endif
