@@ -53,6 +53,7 @@ private:
   volatile int _pressedIndex;
   bool _pendingScreenRefresh;
   volatile bool _hasTargetOutputChanged;
+  alarm_pool_t *alarm_pool;
   void _trigger_return();
   void _trigger_select();
   void _trigger_next();

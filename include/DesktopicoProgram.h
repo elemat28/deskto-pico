@@ -85,12 +85,14 @@ struct ProgramReturn
   SUPPORTED_FORMATS *FORMAT_PREFERENCE;
   UIButtonSet *volatile buttonSet;
   void *data;
+  int refresh_freq_ms;
   ProgramReturn()
   {
     formatOfData = U_DEF;
     PROGRAM_ID = nullptr;
     FORMAT_PREFERENCE = nullptr;
     buttonSet = nullptr;
+    refresh_freq_ms = -1;
   }
 };
 

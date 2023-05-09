@@ -17,6 +17,7 @@ Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 
   _pendingScreenRefresh = false;
   _auto_refresh_live = false;
   REQUIRED_BUTTONS = UIButtonSet();
+  alarm_pool = alarm_pool_create(3, 16);
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
   std::function<void(void)> next_button_funct = std::bind(&Supervisor::_trigger_next, this);

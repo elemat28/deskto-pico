@@ -161,8 +161,8 @@ int startupSupervisor()
 
 int setupInitialAlarmPool()
 {
-  alarm_pool_primary = alarm_pool_create(2, 16);
-  alarm_pool_secondary = alarm_pool_create(3, 32);
+  alarm_pool_primary = alarm_pool_create(1, 16);
+  alarm_pool_secondary = alarm_pool_create(2, 32);
   return 0;
 }
 
