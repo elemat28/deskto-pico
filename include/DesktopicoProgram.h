@@ -5,6 +5,7 @@
 #ifndef MAXPICOPROGRAMIDCHARS
 #define MAXPICOPROGRAMIDCHARS 16
 #endif
+
 enum OUTPUT_FORMAT
 {
   U_DEF,
@@ -19,6 +20,9 @@ enum OUTPUT_FORMAT
   OPTION_BUTTONS,
   HEADING_LIST
 };
+
+typedef std::vector<OUTPUT_FORMAT> SUPPORTED_FORMATS;
+
 struct LIST_OPTIONS_SIMPLE_STRUCT
 {
   int *INDEX;
@@ -74,7 +78,6 @@ struct OPTION_BUTTONS_STRUCT
   };
 };
 
-typedef std::vector<OUTPUT_FORMAT> SUPPORTED_FORMATS;
 struct ProgramReturn
 {
   std::string PROGRAM_ID;
@@ -109,7 +112,7 @@ protected:
 
 public:
   virtual void init() = 0;
-  virtual ProgramReturn *run(bool *pending) = 0;
+  virtual ProgramReturn *run(int *refresh_ms) = 0;
   SUPPORTED_FORMATS FORMAT_PRIORITY;
   UIButtonSet ProgramDefinedButtons;
   bool hasDataBeenPassed();

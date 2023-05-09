@@ -38,7 +38,7 @@ void AboutSystemInfo::init()
   returnValue.data = &return_data;
 }
 
-ProgramReturn *AboutSystemInfo::run(bool *availableButtons)
+ProgramReturn *AboutSystemInfo::run(int *availableButtons)
 {
   // previous();
 

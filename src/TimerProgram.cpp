@@ -62,9 +62,9 @@ void TimerProgram::init()
   processPassedData();
 }
 
-ProgramReturn *TimerProgram::run(bool *hasChanged)
+ProgramReturn *TimerProgram::run(int *refresh_ms)
 {
-  *hasChanged = true;
+  *refresh_ms = 0;
   switch (current_screen)
   {
   case RUNNING:

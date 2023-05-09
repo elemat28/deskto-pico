@@ -88,7 +88,7 @@ int *SupervisorMenu::set_supervisor_funct(std::function<void()> *target)
   return (&current_index);
 }
 
-ProgramReturn *SupervisorMenu::run(bool *availableButtons)
+ProgramReturn *SupervisorMenu::run(int *availableButtons)
 {
   // previous();
 

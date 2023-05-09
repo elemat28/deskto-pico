@@ -15,6 +15,7 @@ Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 
   temp_hardwareDisplay = nullptr;
   _pendingButton = false;
   _pendingScreenRefresh = false;
+  _auto_refresh_live = false;
   REQUIRED_BUTTONS = UIButtonSet();
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
@@ -125,7 +126,7 @@ void Supervisor::finalize()
 void Supervisor::prep_target()
 {
   _currentRunTarget->init();
-  returnedOutput = _currentRunTarget->run((bool *)nullptr);
+  returnedOutput = _currentRunTarget->run(nullptr);
   hardwareDisplay->output_auto(returnedOutput);
   hardwareDisplay->clear();
   _pendingScreenRefresh = true;
@@ -184,14 +185,36 @@ void Supervisor::run()
       _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
     }
   }
-  returnedOutput = _currentRunTarget->run((bool *)&_hasTargetOutputChanged);
-  if (_pendingScreenRefresh || _hasTargetOutputChanged)
+  returnedOutput = _currentRunTarget->run((int *)&_program_refresh_ms);
+  if (_auto_refresh_live)
+  {
+    if (time_reached(_auto_refresh))
+    {
+      _pendingScreenRefresh = true;
+      _auto_refresh_live = false;
+    }
+  }
+  else
+  {
+    if (_program_refresh_ms < 0)
+    {
+    }
+    else if (_program_refresh_ms == 0)
+    {
+      _pendingScreenRefresh = true;
+    }
+    else if (_program_refresh_ms > 0)
+    {
+      _auto_refresh_live = true;
+      _auto_refresh = make_timeout_time_ms(_program_refresh_ms);
+    };
+  };
+  if (_pendingScreenRefresh)
   {
     _pendingScreenRefresh = false;
     _hasTargetOutputChanged = false;
     hardwareDisplay->output_auto(returnedOutput);
   };
-
   // hardwareDisplay->output_auto(returnedOutput);
 }
 
@@ -208,6 +231,14 @@ bool Supervisor::hasWork()
     checkresult = true;
     _pendingScreenRefresh = false;
   }
+  if (_auto_refresh_live)
+  {
+    if (time_reached(_auto_refresh))
+    {
+      checkresult = true;
+    }
+  }
+
   return checkresult;
 }
 

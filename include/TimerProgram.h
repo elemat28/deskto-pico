@@ -7,7 +7,7 @@ class TimerProgram : public DesktopicoProgram
 public:
   TimerProgram();
   ~TimerProgram();
-  ProgramReturn *run(bool *availableButtons);
+  ProgramReturn *run(int *refresh_after_ms);
   void select();
   void previous();
   void next();

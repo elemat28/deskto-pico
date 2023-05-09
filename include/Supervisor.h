@@ -57,6 +57,9 @@ private:
   void _trigger_select();
   void _trigger_next();
   void _return_to_main_menu();
+  bool _auto_refresh_live;
+  volatile int _program_refresh_ms;
+  absolute_time_t _auto_refresh;
   SupervisorMenu OS_MENU;
   AboutSystemInfo SYS_INFO;
   std::vector<DesktopicoProgram *> myPrograms;
