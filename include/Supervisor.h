@@ -10,6 +10,25 @@
 #define UISUPRVSRMAXPRGRMS 6
 #endif
 
+struct RefreshTimerData
+{
+  alarm_pool_t *alarmPool;
+  alarm_id_t *alarmID;
+  bool *screenRefreshPending;
+  RefreshTimerData(alarm_pool_t *pool_ptr, alarm_id_t *alarmID_ptr, bool *screenRefresh_ptr)
+  {
+    alarmPool = pool_ptr;
+    alarmID = alarmID_ptr;
+    screenRefreshPending = screenRefresh_ptr;
+  }
+  RefreshTimerData()
+  {
+    alarmPool = nullptr;
+    alarmID = nullptr;
+    screenRefreshPending = nullptr;
+  }
+};
+
 class Supervisor
 {
 public:
@@ -39,7 +58,7 @@ public:
   UIButton HOME;
 
 private:
-  UIButton HOME_BUTTON;
+    UIButton HOME_BUTTON;
   std::string logMessage;
   std::function<void()> target;
   int *supervisorMenuTargetIndex;
@@ -54,6 +73,10 @@ private:
   bool _pendingScreenRefresh;
   volatile bool _hasTargetOutputChanged;
   alarm_pool_t *alarm_pool;
+  uint POOL_ID;
+  uint NUM_OF_TIMERS;
+  repeating_timer repeatingRefreshTimer;
+  alarm_id_t _refresh_alarm_ID;
   void _trigger_return();
   void _trigger_select();
   void _trigger_next();
@@ -83,6 +106,10 @@ private:
 
   int temp_numOfPrograms;
   int numOfPrograms;
+  RefreshTimerData data;
+
+  void create_alarm_pool();
+  void destroy_and_recreate_alarm_pool();
 };
 
 #endif

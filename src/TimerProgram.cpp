@@ -60,6 +60,8 @@ void TimerProgram::init()
   running_return = returnValue;
   custom_return = returnValue;
   processPassedData();
+  timerObject = Timer(0);
+  current_screen = QUICKSELECT;
 }
 
 ProgramReturn *TimerProgram::run(int *refresh_ms)
@@ -180,8 +182,7 @@ void TimerProgram::RUNNING_configure()
                                                    { QUICKSELECT_configure(); });
   ProgramDefinedButtons.NEXT.setCallbackFunction([this]()
                                                  { timerObject.reset(); });
-
-  TimerTimeLeft returnValue;
+  running_return.refresh_freq_ms = -1;
   switch (status)
   {
   case NOT_STARTED:
@@ -197,6 +198,7 @@ void TimerProgram::RUNNING_configure()
     break;
 
   case ACTIVE:
+    running_return.refresh_freq_ms = 500;
     running_return_data_as_option_buttons.buttons.SELECT.setDisplayAs("PAUSE");
     ProgramDefinedButtons.SELECT.setCallbackFunction([this]()
                                                      { timerObject.pause(); });

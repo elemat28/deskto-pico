@@ -17,7 +17,10 @@ Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 
   _pendingScreenRefresh = false;
   _auto_refresh_live = false;
   REQUIRED_BUTTONS = UIButtonSet();
-  alarm_pool = alarm_pool_create(3, 16);
+  _refresh_alarm_ID = (int32_t)-1;
+  POOL_ID = 3;
+  NUM_OF_TIMERS = 16;
+  create_alarm_pool();
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
   std::function<void(void)> next_button_funct = std::bind(&Supervisor::_trigger_next, this);
@@ -166,9 +169,24 @@ void Supervisor::startup_finish()
   };
 }
 
+bool repeatingRefresh(repeating_timer *rt)
+{
+  // RefreshTimerData *passed_data = (RefreshTimerData *)rt->user_data;
+  //*(passed_data->alarmID) = rt->alarm_id;
+  // *(passed_data->screenRefreshPending) = true;
+  return true;
+};
+
+int64_t supervisor_alarm_callback(alarm_id_t id, void *user_data)
+{
+  auto data = (RefreshTimerData *)user_data;
+  *((RefreshTimerData *)user_data)->screenRefreshPending = true;
+  return 0;
+};
+
 void Supervisor::run()
 {
-
+  bool justSet = false;
   if (_pendingButton)
   {
     _pendingButton = false;
@@ -187,37 +205,37 @@ void Supervisor::run()
     }
   }
   returnedOutput = _currentRunTarget->run((int *)&_program_refresh_ms);
-  if (_auto_refresh_live)
+
+  if (_refresh_alarm_ID <= (int32_t)0)
   {
-    if (time_reached(_auto_refresh))
+    if (returnedOutput->refresh_freq_ms > -1)
     {
+      data = RefreshTimerData(alarm_pool, &_refresh_alarm_ID, &_pendingScreenRefresh);
+      _refresh_alarm_ID = alarm_pool_add_alarm_in_ms(alarm_pool, 1000, supervisor_alarm_callback, &data, false);
+      justSet = true;
       _pendingScreenRefresh = true;
-      _auto_refresh_live = false;
-    }
+      // alarm_pool_add_repeating_timer_ms(alarm_pool, returnedOutput->refresh_freq_ms, repeatingRefresh, &data, &repeatingRefreshTimer);
+    };
+
+    // hardwareDisplay->output_auto(returnedOutput);
   }
   else
   {
-    if (_program_refresh_ms < 0)
-    {
-    }
-    else if (_program_refresh_ms == 0)
-    {
-      _pendingScreenRefresh = true;
-    }
-    else if (_program_refresh_ms > 0)
-    {
-      _auto_refresh_live = true;
-      _auto_refresh = make_timeout_time_ms(_program_refresh_ms);
-    };
+    _refresh_alarm_ID =
+        _pendingScreenRefresh = true;
   };
+
   if (_pendingScreenRefresh)
   {
+    if (!justSet && _refresh_alarm_ID > (int32_t)0)
+    {
+      alarm_pool_cancel_alarm(alarm_pool, _refresh_alarm_ID);
+      _refresh_alarm_ID = 0;
+    };
     _pendingScreenRefresh = false;
-    _hasTargetOutputChanged = false;
     hardwareDisplay->output_auto(returnedOutput);
   };
-  // hardwareDisplay->output_auto(returnedOutput);
-}
+};
 
 bool Supervisor::hasWork()
 {
@@ -230,7 +248,6 @@ bool Supervisor::hasWork()
   if (_pendingScreenRefresh)
   {
     checkresult = true;
-    _pendingScreenRefresh = false;
   }
   if (_auto_refresh_live)
   {
@@ -277,6 +294,8 @@ void Supervisor::_trigger_next()
 
 void Supervisor::_return_to_main_menu()
 {
+  _currentRunTarget->init();
+  destroy_and_recreate_alarm_pool();
   _currentRunTarget = &OS_MENU;
   _pendingScreenRefresh = true;
   run();
@@ -288,6 +307,17 @@ void Supervisor::_return_to_main_menu()
 std::string Supervisor::getLogs()
 {
   return logMessage;
+}
+
+void Supervisor::create_alarm_pool()
+{
+  alarm_pool = alarm_pool_create(POOL_ID, NUM_OF_TIMERS);
+}
+
+void Supervisor::destroy_and_recreate_alarm_pool()
+{
+  alarm_pool_destroy(alarm_pool);
+  create_alarm_pool();
 }
 
 int Supervisor::debugFunc()
