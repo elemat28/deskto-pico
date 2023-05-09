@@ -8,7 +8,7 @@ public:
   SupervisorMenu(DesktopicoProgram* programs);
   SupervisorMenu(const DesktopicoProgram* programs): SupervisorMenu((DesktopicoProgram*)programs){};
   ~SupervisorMenu();
- ProgramReturn* run(UIButtonSet* availableButtons);
+ ProgramReturn* run(bool* availableButtons);
   void select();
   void previous();
   void next();

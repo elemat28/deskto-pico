@@ -19,7 +19,7 @@ public:
   AboutSystemInfo(BasicRequiredInfo baseInfo);
   std::map<std::string, std::string> systemDetails;
   void init();
-  ProgramReturn* run(UIButtonSet* availableButtons);
+  ProgramReturn* run(bool* availableButtons);
   void select();
   void previous();
   void next();
