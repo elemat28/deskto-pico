@@ -85,17 +85,14 @@ void loop()
       supervisor.run(true);
       noUpdate = true;
       break;
-
     case RETURN_GPIO:
       printf("RETURN RELEASED \n");
       supervisor.REQUIRED_BUTTONS.RETURN.trigger_function();
       break;
-
     case SELECT_GPIO:
       printf("SELECT PRESSED \n");
       supervisor.REQUIRED_BUTTONS.SELECT.trigger_function();
       break;
-
     case NEXT_GPIO:
       printf("NEXT PRESSED \n");
       supervisor.REQUIRED_BUTTONS.NEXT.trigger_function();
@@ -105,11 +102,9 @@ void loop()
       break;
     }
     break;
-
   case REFRESH:
     supervisor.run(true);
     break;
-
   default:
     break;
   };
@@ -209,7 +204,6 @@ void gpio_callback(uint gpio, uint32_t events)
       newStruct = PendingWork(BUTTON, gpio, &buttonState);
     };
     break;
-
   case NEXT_GPIO:
     if (events == GPIO_IRQ_EDGE_FALL)
     {
@@ -217,7 +211,6 @@ void gpio_callback(uint gpio, uint32_t events)
       newStruct = PendingWork(BUTTON, gpio, &buttonState);
     };
     break;
-
   default:
     break;
   };

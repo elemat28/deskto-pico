@@ -68,28 +68,28 @@ void TimerProgram::init()
 
 ProgramReturn *TimerProgram::run(int *refresh_ms)
 {
-  *refresh_ms = 0;
   switch (current_screen)
   {
   case RUNNING:
     RUNNING_configure();
     return &running_return;
     break;
-
   case QUICKSELECT:
     QUICKSELECT_configure();
     return &quickselect_return;
     break;
-
   case CUSTOM:
     CUSTOM_configure();
+    if (custom_return.formatOfData == U_DEF)
+    {
+      custom_return.refresh_freq_ms = 0;
+    };
     return &custom_return;
     break;
-
   default:
     return &returnValue;
     break;
-  }
+  };
 }
 
 void TimerProgram::previous()
@@ -219,8 +219,9 @@ void TimerProgram::RUNNING_configure()
 void TimerProgram::CUSTOM_configure()
 {
   current_screen = CUSTOM;
+  custom_return_data_as_option_buttons = OPTION_BUTTONS_STRUCT();
   create_timer(custom_timer_len);
-  custom_return_data_as_option_buttons = OPTION_BUTTONS_STRUCT(formatTimerTimeLeftToString(&timerObject));
+  custom_return_data_as_option_buttons.message = formatTimerTimeLeftToString(&timerObject);
   custom_return_data_as_option_buttons.buttons.RETURN.setDisplayAs("-15S");
   custom_return_data_as_option_buttons.buttons.SELECT.setDisplayAs("OK");
   custom_return_data_as_option_buttons.buttons.NEXT.setDisplayAs("+30S");
