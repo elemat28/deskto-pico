@@ -124,7 +124,7 @@ void SupervisorMenu::next()
 void SupervisorMenu::processPassedDataToProgramList()
 {
 
-  if (hasDataBeenPassed())
+  if ((hasDataBeenPassed()) && listOfPrograms.size() == 0)
   {
     std::vector<DesktopicoProgram *> LOL = *(std::vector<DesktopicoProgram *> *)getDataPtr();
     auto itter = LOL.begin();
@@ -134,17 +134,7 @@ void SupervisorMenu::processPassedDataToProgramList()
       listOfPrograms.emplace_back((*itter)->getDisplayableName());
       itter++;
     };
-  }
-  else
-  {
-
-    listOfPrograms.emplace_back("OPTION2");
-    listOfPrograms.emplace_back("OPTION_3X");
-    listOfPrograms.emplace_back("OPTION_4XX");
-    listOfPrograms.emplace_back("OPTION_5XXX");
-    listOfPrograms.emplace_back("OPTION_6XXXX");
-    listOfPrograms.emplace_back("OPTION_7XXXXX");
-  }
+  };
 }
 
 std::string SupervisorMenu::intToString(int value)

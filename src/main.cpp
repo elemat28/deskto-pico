@@ -1,163 +1,259 @@
-#include "main.h"
-#define ALIVEMSGFREQSECS 2
-#define MENUHOLD_MS 1500
-#define DEBOUNCE 120
-#define MINSPLASHMS 500
+#include <Arduino.h>
+#include <pico.h>
+#include <stdio.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include "stdlib.h"
+#include "hardware/gpio.h"
+#include "pico/time.h"
+#include "pico/multicore.h"
+#include "LCUIDisplay.h"
+#include "Supervisor.h"
+#include "TimerProgram.h"
+#define STDIO_UART 1
+#define FLAG_VALUE 123
 
+// Buttons
+#define HOME_BUTTON -1
 #define RETURN_GPIO 9
 #define SELECT_GPIO 8
 #define NEXT_GPIO 7
+#define GPIO_DEBOUCE_MS 15
+// Timer Pools
+alarm_pool_t *alarm_pool_primary;
+alarm_pool_t *alarm_pool_secondary;
 
-struct PinReading
+absolute_time_t DeBounce;
+// put function declarations here:
+bool noUpdate = false;
+bool printMsg = false;
+bool recordedRead = true;
+std::string output = std::string();
+queue_t pendingWorkQueue;
+queue_t interruptQueue;
+
+LCUIDisplay display;
+
+int myFunction(int, int);
+int pinConfig(void);
+int setupInitialAlarmPool();
+int displaySetup();
+int addPrograms();
+int serialSetup();
+int threadSafeQueues();
+int attachInterrupts();
+void gpio_callback(uint gpio, uint32_t events);
+alarm_id_t hold_callbackID;
+
+int64_t hold_callback(alarm_id_t id, void *user_data);
+void core1_entry();
+BasicRequiredInfo BASE_INFO("DESKTO-PICO", 0.2, "elemat28");
+Supervisor supervisor(BASE_INFO);
+int setupInitialAlarmPool();
+
+void setup()
 {
-  int gpio;
-  bool state;
-  PinReading(int GPIO)
+  supervisor.startup_begin();
+  hold_callbackID = (int32_t)-1;
+  output.reserve(64 * sizeof(char));
+  pinConfig();
+  displaySetup();
+  addPrograms();
+  serialSetup();
+  setupInitialAlarmPool();
+  threadSafeQueues();
+  attachInterrupts();
+  supervisor.finalize();
+  supervisor.startup_finish();
+  supervisor.run();
+  DeBounce = make_timeout_time_ms(GPIO_DEBOUCE_MS);
+}
+PendingWork queueOutput;
+
+void loop()
+{
+
+  // digitalRead(SELECT_GPIO);
+  queue_remove_blocking(&pendingWorkQueue, &queueOutput);
+  switch (queueOutput.TYPE)
   {
-    gpio = GPIO;
-    state = false;
+  case BUTTON:
+    switch (queueOutput.PENDING_OBJECT_ID)
+    {
+    case HOME_BUTTON:
+      supervisor.return_to_menu();
+      noUpdate = true;
+      break;
+
+    case RETURN_GPIO:
+      printf("RETURN RELEASED \n");
+      supervisor.REQUIRED_BUTTONS.RETURN.trigger_function();
+      break;
+
+    case SELECT_GPIO:
+      printf("SELECT PRESSED \n");
+      supervisor.REQUIRED_BUTTONS.SELECT.trigger_function();
+      break;
+
+    case NEXT_GPIO:
+      printf("NEXT PRESSED \n");
+      supervisor.REQUIRED_BUTTONS.NEXT.trigger_function();
+      break;
+
+    default:
+      break;
+    }
+    break;
+
+  case REFRESH:
+    supervisor.run(true);
+    break;
+
+  default:
+    break;
   };
-  PinReading(int GPIO, bool STATE)
-  {
-    gpio = GPIO;
-    state = STATE;
-  };
+  supervisor.run();
+  // supervisor.run();
 };
-
-typedef struct
+// put function definitions here:
+int myFunction(int x, int y)
 {
-  int gpio;
-  bool state;
-} queue_entry_t;
+  return x + y;
+}
 
-queue_t button_queue;
-queue_t results_queue;
-
-bool ignoreRelease = false;
-volatile bool sleeping = false;
-
-volatile int pollingAlarmID = 0;
-volatile bool GPIO_STATE[32] = {false};
-std::array<bool, 32> GPIO_ARRAY = {false};
-std::array<bool, 32> GPIO_SCAN_ARRAY = {false};
-std::vector<std::string> logVector;
-volatile bool (*GPIO_STATE_PTR)[32] = &GPIO_STATE;
-const std::vector<int> DEFINED_BUTTONS = {RETURN_GPIO, SELECT_GPIO, NEXT_GPIO};
-absolute_time_t bounceBuffer;
-std::vector<std::pair<int *, bool>> CURRENT_READINGS;
-
-struct AlivePacket
+int pinConfig(void)
 {
-  std::string message;
-  volatile bool outstandingPrint;
-  AlivePacket()
-  {
-    message = std::string();
-    outstandingPrint = false;
-  }
-} alivePacket;
-
-int64_t alarm_callback(alarm_id_t id, void *user_data)
-{
-  timer_fired = true;
-  ignoreRelease = true;
-  alarm_pool_cancel_alarm(alarm_pool_secondary, id);
-  homeButtonAlarmID = 0;
+  pinMode(RETURN_GPIO, INPUT_PULLUP);
+  pinMode(SELECT_GPIO, INPUT_PULLUP);
+  pinMode(NEXT_GPIO, INPUT_PULLUP);
   return 0;
-};
+}
 
-void addToLogs(std::string message)
+int displaySetup()
 {
-  logVector.emplace_back(message);
-};
+  display = LCUIDisplay(LCUIDisplay::DEFAULTDISPLAYCONFIG);
+  display.init();
+  supervisor.set_UIDisplay(&display);
+  return 0;
+}
 
-void logsToSerial()
+int serialSetup()
 {
-  if (!logVector.empty())
+  Serial1.begin(115200);
+  Serial1.println("Hello, Raspberry Pi Pico!");
+  return 0;
+}
+
+int threadSafeQueues()
+{
+  queue_init(&interruptQueue, sizeof(uint), 4);
+  queue_init(&pendingWorkQueue, sizeof(PendingWork), 4);
+  supervisor.set_workQueue(&pendingWorkQueue);
+
+  return 0;
+}
+int attachInterrupts()
+{
+  gpio_set_irq_enabled_with_callback(9, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+  gpio_set_irq_enabled_with_callback(8, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+  gpio_set_irq_enabled_with_callback(7, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+  return 0;
+}
+
+void gpio_callback(uint gpio, uint32_t events)
+{
+  if (!time_reached(DeBounce))
   {
-    auto itter = logVector.begin();
-    while (itter != logVector.end())
-    {
-      std::string to_print;
-      to_print = *itter;
-      Serial.println(to_print.c_str());
-      itter++;
-    };
-    logVector.clear();
+    return;
   };
-};
-
-int logFunctionResult(const std::string functionMessage, int (*function_ptr)(), bool logToConsole = true)
-{
-  if (logToConsole)
+  if (noUpdate)
   {
-    std::string scopeMsg = std::string("[SETUP][");
-    scopeMsg.append(functionMessage);
-    scopeMsg.append("] ");
-    std::string logMessage = scopeMsg;
-    logMessage.append("Starting...");
-    Serial.println(logMessage.c_str());
-    int result = function_ptr();
-    logMessage = scopeMsg;
-    if (result == 0)
+    noUpdate = false;
+    return;
+  };
+  // Put the GPIO event(s) that just happened into event_str
+  // so we can print it
+  PendingWork newStruct;
+  bool buttonState;
+  switch (gpio)
+  {
+  case RETURN_GPIO:
+    if (events == GPIO_IRQ_EDGE_RISE)
     {
-      logMessage.append("OK!");
+      if (hold_callbackID > 0)
+      {
+        alarm_pool_cancel_alarm(alarm_pool_secondary, hold_callbackID);
+        hold_callbackID = 0;
+      };
+      buttonState = false;
+      newStruct = PendingWork(BUTTON, gpio, &buttonState);
     }
     else
     {
-      logMessage.append("ERROR! %i", result);
-    }
-    Serial.println(logMessage.c_str());
-    return result;
-  }
-  else
+      if (hold_callbackID > 0)
+      {
+        alarm_pool_cancel_alarm(alarm_pool_secondary, hold_callbackID);
+        hold_callbackID = 0;
+      };
+      hold_callbackID = alarm_pool_add_alarm_in_ms(alarm_pool_secondary, 1000, hold_callback, &pendingWorkQueue, true);
+    };
+    break;
+  case SELECT_GPIO:
+    if (events == GPIO_IRQ_EDGE_FALL)
+    {
+      buttonState = true;
+      newStruct = PendingWork(BUTTON, gpio, &buttonState);
+    };
+    break;
+
+  case NEXT_GPIO:
+    if (events == GPIO_IRQ_EDGE_FALL)
+    {
+      buttonState = true;
+      newStruct = PendingWork(BUTTON, gpio, &buttonState);
+    };
+    break;
+
+  default:
+    break;
+  };
+  if (newStruct.TYPE != NONE)
   {
-    return function_ptr();
-  }
-};
+    queue_try_add(&pendingWorkQueue, (void *)&newStruct);
+  };
+  DeBounce = make_timeout_time_ms(GPIO_DEBOUCE_MS);
+  // printf("GPIO %d %s\n", gpio, event_str);
+}
 
-int pinSetup()
+int64_t hold_callback(alarm_id_t id, void *user_data)
 {
-  // RGB led
-  pinMode(15, OUTPUT);
-  pinMode(14, OUTPUT);
-  pinMode(13, OUTPUT);
-  // encoder
-  pinMode(12, INPUT_PULLUP); // CLICK
-  pinMode(11, INPUT);
-  pinMode(10, INPUT);
-  // button
-  pinMode(9, INPUT_PULLUP); // CLICK
-  pinMode(8, INPUT_PULLUP);
-  pinMode(7, INPUT_PULLUP);
-  // buzzer
-  pinMode(6, OUTPUT);
+  PendingWork newStruct = PendingWork(BUTTON, HOME_BUTTON);
+  queue_t *ptr = (queue_t *)user_data;
+  queue_try_add(ptr, &newStruct);
   return 0;
 };
 
-int createUIdisplay()
+int addPrograms()
 {
-  screen = LCUIDisplay();
-  return 0;
-};
+  supervisor.add_program(new TimerProgram, sizeof(TimerProgram));
 
-int addDisplayToSupervisor()
-{
-  uiSupervisor.set_UIDisplay(&screen);
   return 0;
 };
+void core1_entry()
+{
 
-int finalizeSupervisor()
-{
-  uiSupervisor.finalize();
-  return 0;
-};
+  multicore_fifo_push_blocking(FLAG_VALUE);
 
-int startupSupervisor()
-{
-  uiSupervisor.startup_finish();
-  return 0;
-};
+  uint32_t g = multicore_fifo_pop_blocking();
+
+  if (g != FLAG_VALUE)
+    printf("Hmm, that's not right on core 1!\n");
+  else
+    printf("Its all gone well on core 1!");
+
+  while (1)
+    tight_loop_contents();
+}
 
 int setupInitialAlarmPool()
 {
@@ -165,195 +261,3 @@ int setupInitialAlarmPool()
   alarm_pool_secondary = alarm_pool_create(2, 32);
   return 0;
 }
-
-bool repeatingPrintAliveFunct(repeating_timer *rt)
-{
-  AlivePacket *dataPtr = (AlivePacket *)(*rt).user_data;
-
-  (*dataPtr).message.clear();
-  (*dataPtr).message.append("Runtime[seconds]: ");
-  (*dataPtr).message.append(std::to_string((int)(time_us_64() / (1000 * 1000))).c_str());
-  (*dataPtr).outstandingPrint = true;
-
-  return true;
-};
-
-bool repeatinHWPolling(repeating_timer *rt)
-{
-
-  if (digitalRead(RETURN_GPIO) == GPIO_ARRAY[RETURN_GPIO])
-  {
-    GPIO_ARRAY[RETURN_GPIO] = !GPIO_ARRAY[RETURN_GPIO];
-    PinReading change = PinReading(RETURN_GPIO, GPIO_ARRAY[RETURN_GPIO]);
-    if (!queue_is_full(&button_queue))
-    {
-      queue_add_blocking(&button_queue, &change);
-    };
-  };
-  if (digitalRead(SELECT_GPIO) == GPIO_ARRAY[SELECT_GPIO])
-  {
-    GPIO_ARRAY[SELECT_GPIO] = !GPIO_ARRAY[SELECT_GPIO];
-    PinReading change = PinReading(SELECT_GPIO, GPIO_ARRAY[SELECT_GPIO]);
-    if (!queue_is_full(&button_queue))
-    {
-      queue_add_blocking(&button_queue, &change);
-    }
-  };
-  if (digitalRead(NEXT_GPIO) == GPIO_ARRAY[NEXT_GPIO])
-  {
-    GPIO_ARRAY[NEXT_GPIO] = !GPIO_ARRAY[NEXT_GPIO];
-    PinReading change = PinReading(NEXT_GPIO, GPIO_ARRAY[NEXT_GPIO]);
-    if (!queue_is_full(&button_queue))
-    {
-      queue_add_blocking(&button_queue, &change);
-    };
-  };
-
-  return true;
-};
-
-int setupAlivePrintToSerial()
-{
-  if (createTimeout(alarm_pool_primary, ALIVEMSGFREQSECS * 1000000, repeatingPrintAliveFunct, (void *)&alivePacket, (repeating_timer_t *)&rtInst))
-  {
-    return 0;
-  }
-  else
-  {
-    return 1;
-  }
-};
-
-int setupPollingRepeater()
-{
-  if (createTimeout(alarm_pool_secondary, 10000, repeatinHWPolling, (void *)&GPIO_ARRAY, (repeating_timer_t *)&HWPollingTimer))
-  {
-    return 0;
-  }
-  else
-  {
-    return 1;
-  }
-};
-
-int addPrograms()
-{
-  uiSupervisor.add_program(new TimerProgram, sizeof(TimerProgram));
-
-  return 0;
-};
-
-void setup()
-{
-  uiSupervisor.splashScreen_min_ms(0);
-  uiSupervisor.startup_begin();
-  logFunctionResult("UIDisplay instantiate", createUIdisplay);
-  logFunctionResult("Add display to supervisor", addDisplayToSupervisor);
-
-  USBSetup();
-  GPIO = -1;
-  pollingAlarmID = 0;
-  printFreq = get_absolute_time();
-  alivePacket = AlivePacket();
-  holding = false;
-  holdCounting = false;
-  callbackResult = false;
-  timer_fired = false;
-  button_pressed = false;
-  construct_alarm = false;
-  destruct_alarm = false;
-  DeBounce = make_timeout_time_ms(DEBOUNCE);
-  homeButtonAlarmID = 0;
-  alivePacket.outstandingPrint = true;
-  alivePacket.message.reserve(64); // without this timer breaks if string has to be resized in the callback
-  bounceBuffer = get_absolute_time();
-  queue_init(&button_queue, sizeof(PinReading), 2);
-  logFunctionResult("Pin Setup", pinSetup);
-  logFunctionResult("add Programs", addPrograms);
-  logFunctionResult("Finalize Supervisor", finalizeSupervisor);
-  logFunctionResult("Initial Alarm Pool setup", setupInitialAlarmPool);
-  logFunctionResult("Repeating ALIVE timer activation", setupAlivePrintToSerial);
-  logFunctionResult("Repeating GPIO Polling activation", setupPollingRepeater);
-  DeBounce = make_timeout_time_ms(DEBOUNCE);
-  ignoreRelease = false;
-  uiSupervisor.startup_finish();
-};
-
-void loop()
-{
-
-  if (timer_fired)
-  {
-    addToLogs("LONG PRESS!");
-    timer_fired = false;
-    addToLogs("Returning home...");
-    uiSupervisor.HOME.trigger_function();
-  };
-  if (alivePacket.outstandingPrint)
-  {
-    alivePacket.outstandingPrint = false;
-    addToLogs(alivePacket.message.c_str());
-  };
-  if (!queue_is_empty(&button_queue))
-  {
-    PinReading reading = PinReading(0);
-    queue_remove_blocking(&button_queue, &reading);
-    switch (reading.gpio)
-    {
-    case RETURN_GPIO:
-      if (reading.state == LOW)
-      {
-        if (ignoreRelease)
-        {
-          ignoreRelease = false;
-        }
-        else
-        {
-          addToLogs("RETURN RELEASED");
-          uiSupervisor.REQUIRED_BUTTONS.RETURN.trigger_function();
-        };
-        if (homeButtonAlarmID > 0)
-        {
-          alarm_pool_cancel_alarm(alarm_pool_secondary, homeButtonAlarmID);
-          homeButtonAlarmID = 0;
-        };
-      }
-      else
-      {
-        if (homeButtonAlarmID != 0)
-        {
-          alarm_pool_cancel_alarm(alarm_pool_secondary, homeButtonAlarmID);
-          homeButtonAlarmID = 0;
-        };
-        homeButtonAlarmID = createTimeout_single(alarm_pool_secondary, 1000, alarm_callback, (void *)&holding, true);
-      }
-      break;
-
-    case SELECT_GPIO:
-      if (reading.state == HIGH)
-      {
-        addToLogs("SELECT PRESSED");
-        uiSupervisor.REQUIRED_BUTTONS.SELECT.trigger_function();
-      };
-      break;
-
-    case NEXT_GPIO:
-      if (reading.state == HIGH)
-      {
-        addToLogs("NEXT PRESSED");
-        uiSupervisor.REQUIRED_BUTTONS.NEXT.trigger_function();
-      };
-      break;
-
-    default:
-      break;
-    }
-  };
-
-  uiSupervisor.run();
-  logsToSerial();
-  while ((logVector.empty() && !alivePacket.outstandingPrint && queue_is_empty(&button_queue) && !timer_fired && !uiSupervisor.hasWork()))
-  {
-    sleep_ms(20);
-  };
-};

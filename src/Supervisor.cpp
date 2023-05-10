@@ -19,7 +19,7 @@ Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 
   REQUIRED_BUTTONS = UIButtonSet();
   _refresh_alarm_ID = (int32_t)-1;
   POOL_ID = 3;
-  NUM_OF_TIMERS = 16;
+  NUM_OF_TIMERS = 62;
   create_alarm_pool();
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
@@ -33,6 +33,10 @@ Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 
   HOME = HOME_BUTTON;
   HOME_BUTTON.setCallbackFunction(HOME_button_funct);
   HOME.setCallbackFunction(HOME_button);
+}
+
+Supervisor::Supervisor(BasicRequiredInfo INFO) : Supervisor()
+{
 }
 
 Supervisor::Supervisor(DesktopicoProgram *programs) : Supervisor()
@@ -87,6 +91,11 @@ void Supervisor::set_UIDisplay(UIDisplayHandler *display)
   };
 }
 
+void Supervisor::set_workQueue(queue_t *queue_ptr)
+{
+  temp_workQueue = queue_ptr;
+}
+
 void Supervisor::set_startup_program(char name[])
 {
 }
@@ -123,6 +132,7 @@ void Supervisor::finalize()
     target = [this]()
     { change_run_target(); };
     supervisorMenuTargetIndex = OS_MENU.set_supervisor_funct(&target);
+    workQueue = temp_workQueue;
     finalized = true;
   }
 }
@@ -179,12 +189,15 @@ bool repeatingRefresh(repeating_timer *rt)
 
 int64_t supervisor_alarm_callback(alarm_id_t id, void *user_data)
 {
-  *((RefreshTimerData *)user_data)->screenRefreshPending = true;
+  PendingWork newStruct = PendingWork(REFRESH, (uint)id);
+  queue_t *ptr = (queue_t *)user_data;
+  queue_try_add(ptr, &newStruct);
   return 0;
 };
 
 void Supervisor::run()
 {
+
   bool justSet = false;
   if (_pendingButton)
   {
@@ -203,14 +216,41 @@ void Supervisor::run()
       _currentRunTarget->ProgramDefinedButtons.NEXT.trigger_function();
     }
   }
+
   returnedOutput = _currentRunTarget->run((int *)&_program_refresh_ms);
+
+  if (_pendingScreenRefresh)
+  {
+    hardwareDisplay->output_auto(returnedOutput);
+    _pendingScreenRefresh = false;
+    if (_refresh_alarm_ID > 0)
+    {
+      if (_refresh_alarm_ID >= NUM_OF_TIMERS)
+      {
+        _refresh_alarm_ID = 0;
+        printf("RESETTING ALARM POOL... \n");
+        destroy_and_recreate_alarm_pool();
+      }
+      else
+      {
+        alarm_pool_cancel_alarm(alarmPool_ptr, _refresh_alarm_ID);
+        if (_refresh_alarm_ID % 10 == 0)
+        {
+          printf("Alarm id: %li \n", _refresh_alarm_ID);
+        }
+
+        _refresh_alarm_ID = 0;
+      }
+    }
+  };
 
   if (_refresh_alarm_ID <= (int32_t)0)
   {
     if (returnedOutput->refresh_freq_ms > -1)
     {
-      data = RefreshTimerData(alarm_pool, &_refresh_alarm_ID, &_pendingScreenRefresh);
-      _refresh_alarm_ID = alarm_pool_add_alarm_in_ms(alarm_pool, 1000, supervisor_alarm_callback, &data, false);
+      // data = RefreshTimerData(alarmPool_ptr, &_refresh_alarm_ID, &_pendingScreenRefresh);
+      _refresh_alarm_ID = alarm_pool_add_alarm_in_ms(alarmPool_ptr, returnedOutput->refresh_freq_ms, supervisor_alarm_callback, workQueue, false);
+      // printf("val %i \n", _refresh_alarm_ID);
       justSet = true;
       _pendingScreenRefresh = true;
       // alarm_pool_add_repeating_timer_ms(alarm_pool, returnedOutput->refresh_freq_ms, repeatingRefresh, &data, &repeatingRefreshTimer);
@@ -228,7 +268,7 @@ void Supervisor::run()
   {
     if (!justSet && _refresh_alarm_ID > (int32_t)0)
     {
-      alarm_pool_cancel_alarm(alarm_pool, _refresh_alarm_ID);
+      alarm_pool_cancel_alarm(alarmPool_ptr, _refresh_alarm_ID);
       _refresh_alarm_ID = 0;
     };
     _pendingScreenRefresh = false;
@@ -239,6 +279,11 @@ void Supervisor::run()
     };
     hardwareDisplay->output_auto(returnedOutput);
   };
+};
+
+void Supervisor::run(bool forceRefresh)
+{
+  _pendingScreenRefresh = forceRefresh;
 };
 
 bool Supervisor::hasWork()
@@ -315,12 +360,12 @@ std::string Supervisor::getLogs()
 
 void Supervisor::create_alarm_pool()
 {
-  alarm_pool = alarm_pool_create(POOL_ID, NUM_OF_TIMERS);
+  alarmPool_ptr = alarm_pool_create(POOL_ID, NUM_OF_TIMERS);
 }
 
 void Supervisor::destroy_and_recreate_alarm_pool()
 {
-  alarm_pool_destroy(alarm_pool);
+  alarm_pool_destroy(alarmPool_ptr);
   create_alarm_pool();
 }
 

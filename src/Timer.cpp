@@ -29,7 +29,7 @@ void Timer::_update(void)
   absolute_time_t stamp = get_absolute_time();
   if (_currentStatus == ACTIVE)
   {
-    _secondsLeft -= absolute_time_diff_us(_lastUpdate, stamp) / 1000000;
+    _secondsLeft -= (float)absolute_time_diff_us(_lastUpdate, stamp) / 1000000;
     if (_secondsLeft <= 0)
     {
       _currentStatus = FINISHED;
@@ -83,7 +83,7 @@ float Timer::getTimerLenAsMinutes(void)
 int Timer::getTimeLeftAsSeconds(void)
 {
   _update();
-  return _secondsLeft;
+  return (int)_secondsLeft;
 }
 
 float Timer::getTimeLeftAsMinutes(void)

@@ -6,9 +6,47 @@
 #include "UIDisplayHandler.h"
 #include <cstring>
 #include <pico/time.h>
+#include "pico_util/include/pico/util/queue.h"
 #ifndef UISUPRVSRMAXPRGRMS
 #define UISUPRVSRMAXPRGRMS 6
 #endif
+
+enum TypeOfWork
+{
+  NONE,
+  INTERRUPT,
+  BUTTON,
+  REFRESH,
+  TIMEOUT
+};
+struct PendingWork
+{
+  TypeOfWork TYPE;
+  int PENDING_OBJECT_ID;
+  void *data;
+  PendingWork()
+  {
+    TYPE = NONE;
+    PENDING_OBJECT_ID = -1;
+    data = nullptr;
+  };
+  PendingWork(TypeOfWork type, int ID) : PendingWork()
+  {
+    TYPE = type;
+    PENDING_OBJECT_ID = ID;
+  };
+  PendingWork(TypeOfWork type, uint ID) : PendingWork()
+  {
+    TYPE = type;
+    PENDING_OBJECT_ID = ID;
+  };
+  PendingWork(TypeOfWork type, int ID, void *data_ptr)
+  {
+    TYPE = type;
+    PENDING_OBJECT_ID = ID;
+    data = data_ptr;
+  };
+};
 
 struct RefreshTimerData
 {
@@ -34,6 +72,7 @@ class Supervisor
 public:
   UIButtonSet REQUIRED_BUTTONS;
   Supervisor();
+  Supervisor(BasicRequiredInfo INFO);
   Supervisor(DesktopicoProgram *programs);
   ~Supervisor();
   int setBaseButtonGPIO(UIButton button, int GPIO);
@@ -43,11 +82,13 @@ public:
   void splashScreen_min_ms(int minimum_ms);
   void add_program(DesktopicoProgram *program, size_t programSize);
   void set_UIDisplay(UIDisplayHandler *display);
+  void set_workQueue(queue_t *queue_ptr);
   void set_startup_program(char name[]);
   void startup_begin();
   void finalize();
   void startup_finish();
   void run();
+  void run(bool forceRefresh);
   bool hasWork();
   bool peekhasWork();
   void run_program(char name[]);
@@ -58,7 +99,7 @@ public:
   UIButton HOME;
 
 private:
-    UIButton HOME_BUTTON;
+  UIButton HOME_BUTTON;
   std::string logMessage;
   std::function<void()> target;
   int *supervisorMenuTargetIndex;
@@ -72,9 +113,9 @@ private:
   volatile int _pressedIndex;
   bool _pendingScreenRefresh;
   volatile bool _hasTargetOutputChanged;
-  alarm_pool_t *alarm_pool;
+  alarm_pool_t *alarmPool_ptr;
   uint POOL_ID;
-  uint NUM_OF_TIMERS;
+  long int NUM_OF_TIMERS;
   repeating_timer repeatingRefreshTimer;
   alarm_id_t _refresh_alarm_ID;
   void _trigger_return();
@@ -103,6 +144,9 @@ private:
 
   UIDisplayHandler *hardwareDisplay;
   UIDisplayHandler *temp_hardwareDisplay;
+
+  queue_t *workQueue;
+  queue_t *temp_workQueue;
 
   int temp_numOfPrograms;
   int numOfPrograms;

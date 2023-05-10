@@ -30,7 +30,7 @@ class Timer
 private:
   TimerStatus _currentStatus;
   int _lengthOfTimerSecs;
-  int _secondsLeft;
+  float _secondsLeft;
   absolute_time_t _runningSince;
   absolute_time_t _lastUpdate;
   Timer();

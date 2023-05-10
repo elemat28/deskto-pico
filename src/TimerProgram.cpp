@@ -199,7 +199,7 @@ void TimerProgram::RUNNING_configure()
     break;
 
   case ACTIVE:
-    running_return.refresh_freq_ms = 500;
+    running_return.refresh_freq_ms = 1000;
     running_return_data_as_option_buttons.buttons.SELECT.setDisplayAs("PAUSE");
     ProgramDefinedButtons.SELECT.setCallbackFunction([this]()
                                                      { timerObject.pause(); });

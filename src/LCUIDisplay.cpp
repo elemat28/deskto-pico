@@ -128,6 +128,8 @@ void LCUIDisplay::safe_output(char *data)
   screen.print(data);
 }
 
+void LCUIDisplay::safe_output(char const *data) { safe_output((char *)data); };
+
 void LCUIDisplay::output_auto(ProgramReturn *programOutput)
 {
   if (programOutput->formatOfData == U_DEF)
