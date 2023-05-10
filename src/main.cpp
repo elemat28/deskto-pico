@@ -10,6 +10,7 @@
 #include "LCUIDisplay.h"
 #include "Supervisor.h"
 #include "TimerProgram.h"
+#include "AutoLoginProgram.h"
 #define STDIO_UART 1
 #define FLAG_VALUE 123
 
@@ -233,7 +234,7 @@ int64_t hold_callback(alarm_id_t id, void *user_data)
 int addPrograms()
 {
   supervisor.add_program(new TimerProgram, sizeof(TimerProgram));
-
+  supervisor.add_program(new AutoLoginProgram, sizeof(AutoLoginProgram));
   return 0;
 };
 void core1_entry()
