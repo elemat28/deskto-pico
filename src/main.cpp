@@ -82,6 +82,7 @@ void loop()
     {
     case HOME_BUTTON:
       supervisor.return_to_menu();
+      supervisor.run(true);
       noUpdate = true;
       break;
 
@@ -166,11 +167,7 @@ void gpio_callback(uint gpio, uint32_t events)
   {
     return;
   };
-  if (noUpdate)
-  {
-    noUpdate = false;
-    return;
-  };
+
   // Put the GPIO event(s) that just happened into event_str
   // so we can print it
   PendingWork newStruct;
@@ -186,7 +183,14 @@ void gpio_callback(uint gpio, uint32_t events)
         hold_callbackID = 0;
       };
       buttonState = false;
-      newStruct = PendingWork(BUTTON, gpio, &buttonState);
+      if (noUpdate)
+      {
+        noUpdate = false;
+      }
+      else
+      {
+        newStruct = PendingWork(BUTTON, gpio, &buttonState);
+      }
     }
     else
     {

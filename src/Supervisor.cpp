@@ -343,9 +343,11 @@ void Supervisor::_trigger_next()
 
 void Supervisor::_return_to_main_menu()
 {
-  _currentRunTarget->init();
+
   destroy_and_recreate_alarm_pool();
   _currentRunTarget = &OS_MENU;
+  _currentRunTarget->init();
+  run(true);
   _pendingScreenRefresh = true;
   run();
   // hardwareDisplay->safe_output((const char*)x.c_str());
