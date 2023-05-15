@@ -1,6 +1,7 @@
 #ifndef KEYINPUTPRGRM_H
 #define KEYINPUTPRGRM_H
 #include "DesktopicoProgram.h"
+
 class AutoLoginProgram : public DesktopicoProgram
 {
 public:
@@ -32,14 +33,24 @@ public:
 
 protected:
   static std::string static_ID;
-  std::string intToString(int value);
 
 private:
+  enum OutputMode
+  {
+    USERNAME,
+    PASSWORD,
+    FULL
+  };
+  OutputMode outputSetting;
+  std::vector<AutoLoginProgram::AccountDetails> accouts;
   enum SCREEN
   {
     ACCOUNTSELECT,
     OUTPUTSELECTION
   };
+  SUPPORTED_FORMATS ACCOUNTSELECT_formats_priority;
+  SUPPORTED_FORMATS OUTPUTSELECTION_formats_priority;
+
   SCREEN current_screen;
   ProgramReturn ACCOUNTSELECT_return;
   ProgramReturn OUTPUTSELECTION_return;
@@ -49,14 +60,8 @@ private:
   LIST_OPTIONS_SIMPLE_STRUCT accountselect_return_data;
   OPTION_BUTTONS_STRUCT outputselection_return_data;
   void ACCOUNTSELECT_configure();
-  void QUICKSELECT_button_return();
-  void QUICKSELECT_button_select();
-  void QUICKSELECT_button_next();
-
   void OUTPUTSELECTION_configure();
-  void RUNNING_button_return();
-  void RUNNING_button_select();
-  void RUNNING_button_next();
+  void triggerOutput();
 };
 
 #endif

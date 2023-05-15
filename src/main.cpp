@@ -1,18 +1,21 @@
 #include <Arduino.h>
 #include <pico.h>
+#include <pico/stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include "stdlib.h"
-#include "hardware/gpio.h"
-#include "pico/time.h"
-#include "pico/multicore.h"
-#include "LCUIDisplay.h"
+#include "pico/util/queue.h"
 #include "Supervisor.h"
+#include "OLEDUIDisplay.h"
 #include "TimerProgram.h"
 #include "AutoLoginProgram.h"
-#define STDIO_UART 1
-#define FLAG_VALUE 123
+
+OLEDUIDisplay scrrenObj;
+/*
+#include "Supervisor.h"
+BasicRequiredInfo BASE_INFO("DESKTO-PICO", 0.2, "elemat28");
+Supervisor supervisor(BASE_INFO);
+*/
 
 // Buttons
 #define HOME_BUTTON -1
@@ -23,58 +26,56 @@
 // Timer Pools
 alarm_pool_t *alarm_pool_primary;
 alarm_pool_t *alarm_pool_secondary;
+alarm_pool_t *alarm_pool_destroyable;
 
 absolute_time_t DeBounce;
+alarm_id_t hold_callbackID;
 // put function declarations here:
 bool noUpdate = false;
 bool printMsg = false;
 bool recordedRead = true;
-std::string output = std::string();
+String output = String();
 queue_t pendingWorkQueue;
 queue_t interruptQueue;
-
-LCUIDisplay display;
-
-int myFunction(int, int);
 int pinConfig(void);
 int setupInitialAlarmPool();
 int displaySetup();
 int addPrograms();
+int passDataToPrograms();
 int serialSetup();
 int threadSafeQueues();
 int attachInterrupts();
-void gpio_callback(uint gpio, uint32_t events);
-alarm_id_t hold_callbackID;
-
 int64_t hold_callback(alarm_id_t id, void *user_data);
-void core1_entry();
-BasicRequiredInfo BASE_INFO("DESKTO-PICO", 0.2, "elemat28");
-Supervisor supervisor(BASE_INFO);
-int setupInitialAlarmPool();
-
+void gpio_callback(uint gpio, uint32_t events);
+Supervisor supervisor = Supervisor();
+String message = String("Hello");
 void setup()
 {
-  supervisor.startup_begin();
+  Serial.begin(115200);
+  Serial1.begin(115200);
+  Serial1.println("Serial1");
+  Serial1.println("-------------------------------");
   hold_callbackID = (int32_t)-1;
-  output.reserve(64 * sizeof(char));
   pinConfig();
+  setupInitialAlarmPool();
+  supervisor.assign_alarm_pool(alarm_pool_destroyable);
+  threadSafeQueues();
   displaySetup();
   addPrograms();
-  serialSetup();
-  setupInitialAlarmPool();
-  threadSafeQueues();
   attachInterrupts();
+
+  // scrrenObj.init();
+  Serial1.println("screen int'd");
+  // scrrenObj.safe_output(message.c_str());
   supervisor.finalize();
   supervisor.startup_finish();
   supervisor.run();
-  DeBounce = make_timeout_time_ms(GPIO_DEBOUCE_MS);
 }
-PendingWork queueOutput;
 
+byte value = 0;
+PendingWork queueOutput;
 void loop()
 {
-
-  // digitalRead(SELECT_GPIO);
   queue_remove_blocking(&pendingWorkQueue, &queueOutput);
   switch (queueOutput.TYPE)
   {
@@ -110,12 +111,6 @@ void loop()
     break;
   };
   supervisor.run();
-  // supervisor.run();
-};
-// put function definitions here:
-int myFunction(int x, int y)
-{
-  return x + y;
 }
 
 int pinConfig(void)
@@ -128,27 +123,13 @@ int pinConfig(void)
 
 int displaySetup()
 {
-  display = LCUIDisplay(LCUIDisplay::DEFAULTDISPLAYCONFIG);
-  display.init();
-  supervisor.set_UIDisplay(&display);
+  supervisor.splashScreenDuringStartup(false);
+  supervisor.startup_begin();
+  scrrenObj = OLEDUIDisplay();
+  supervisor.set_UIDisplay(&scrrenObj);
   return 0;
 }
 
-int serialSetup()
-{
-  Serial1.begin(115200);
-  Serial1.println("Hello, Raspberry Pi Pico!");
-  return 0;
-}
-
-int threadSafeQueues()
-{
-  queue_init(&interruptQueue, sizeof(uint), 4);
-  queue_init(&pendingWorkQueue, sizeof(PendingWork), 4);
-  supervisor.set_workQueue(&pendingWorkQueue);
-
-  return 0;
-}
 int attachInterrupts()
 {
   gpio_set_irq_enabled_with_callback(9, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
@@ -159,8 +140,10 @@ int attachInterrupts()
 
 void gpio_callback(uint gpio, uint32_t events)
 {
+
   if (!time_reached(DeBounce))
   {
+
     return;
   };
 
@@ -231,31 +214,26 @@ int64_t hold_callback(alarm_id_t id, void *user_data)
   return 0;
 };
 
+int setupInitialAlarmPool()
+{
+  alarm_pool_primary = alarm_pool_create(1, 16);
+  alarm_pool_secondary = alarm_pool_create(2, 32);
+  alarm_pool_destroyable = alarm_pool_create(0, 64);
+  return 0;
+};
+
+int threadSafeQueues()
+{
+  queue_init(&interruptQueue, sizeof(uint), 4);
+  queue_init(&pendingWorkQueue, sizeof(PendingWork), 4);
+  supervisor.set_workQueue(&pendingWorkQueue);
+
+  return 0;
+}
+
 int addPrograms()
 {
   supervisor.add_program(new TimerProgram, sizeof(TimerProgram));
   supervisor.add_program(new AutoLoginProgram, sizeof(AutoLoginProgram));
   return 0;
 };
-void core1_entry()
-{
-
-  multicore_fifo_push_blocking(FLAG_VALUE);
-
-  uint32_t g = multicore_fifo_pop_blocking();
-
-  if (g != FLAG_VALUE)
-    printf("Hmm, that's not right on core 1!\n");
-  else
-    printf("Its all gone well on core 1!");
-
-  while (1)
-    tight_loop_contents();
-}
-
-int setupInitialAlarmPool()
-{
-  alarm_pool_primary = alarm_pool_create(1, 16);
-  alarm_pool_secondary = alarm_pool_create(2, 32);
-  return 0;
-}

@@ -2,6 +2,7 @@
 
 Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 1.0, "elemat28"))
 {
+
   _ver = 0.1;
   BasicRequiredInfo info("DESKTO-PICO", 1.0, "elemat28");
   _splashScreenDuringStartup = true;
@@ -18,9 +19,9 @@ Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 
   _auto_refresh_live = false;
   REQUIRED_BUTTONS = UIButtonSet();
   _refresh_alarm_ID = (int32_t)-1;
-  POOL_ID = 3;
+  POOL_ID = 0;
   NUM_OF_TIMERS = 62;
-  create_alarm_pool();
+
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
   std::function<void(void)> next_button_funct = std::bind(&Supervisor::_trigger_next, this);
@@ -33,6 +34,8 @@ Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 
   HOME = HOME_BUTTON;
   HOME_BUTTON.setCallbackFunction(HOME_button_funct);
   HOME.setCallbackFunction(HOME_button);
+  /*
+   */
 }
 
 Supervisor::Supervisor(BasicRequiredInfo INFO) : Supervisor()
@@ -78,6 +81,24 @@ void Supervisor::add_program(DesktopicoProgram *program, size_t programSize)
   memcpy(allocated_with_malloc, program, programSize);
   DesktopicoProgram *ptr = (DesktopicoProgram *)allocated_with_malloc;
   myPrograms.emplace_back(ptr);
+}
+
+bool Supervisor::passDataToProgramID(std::string programID, void *data)
+{
+  bool result = false;
+  auto itter = myPrograms.begin();
+  while ((!result) && (itter != myPrograms.end()))
+  {
+    auto deref = *itter;
+    if (deref->getID() == programID)
+    {
+      deref->pass_data(data);
+      result = true;
+    };
+    itter++;
+  }
+
+  return result;
 }
 
 void Supervisor::set_UIDisplay(UIDisplayHandler *display)
@@ -133,13 +154,16 @@ void Supervisor::finalize()
     { change_run_target(); };
     supervisorMenuTargetIndex = OS_MENU.set_supervisor_funct(&target);
     workQueue = temp_workQueue;
+
     finalized = true;
   }
 }
 
 void Supervisor::prep_target()
 {
+
   _currentRunTarget->init();
+
   returnedOutput = _currentRunTarget->run(nullptr);
   hardwareDisplay->output_auto(returnedOutput);
   hardwareDisplay->clear();
@@ -153,6 +177,9 @@ void Supervisor::change_run_target()
     if ((-1 < *supervisorMenuTargetIndex) && ((long)*supervisorMenuTargetIndex < (long)myPrograms.size()))
     {
       _currentRunTarget = myPrograms.at(*supervisorMenuTargetIndex);
+      printf("change run target ");
+      printf(_currentRunTarget->getID().c_str());
+      printf("\n");
       prep_target();
     };
   };
@@ -363,6 +390,11 @@ std::string Supervisor::getLogs()
 void Supervisor::create_alarm_pool()
 {
   alarmPool_ptr = alarm_pool_create(POOL_ID, NUM_OF_TIMERS);
+}
+
+void Supervisor::assign_alarm_pool(alarm_pool_t *pass_ptr)
+{
+  alarmPool_ptr = pass_ptr;
 }
 
 void Supervisor::destroy_and_recreate_alarm_pool()

@@ -1,12 +1,15 @@
 #ifndef UISUPRVSR_H
 #define UISUPRVSR_H
+#include <Arduino.h>
+#include <pico.h>
+#include <pico/time.h>
+#include "pico/util/queue.h"
 #include "UIButtonSet.h"
 #include "AboutSystemInfo.h"
 #include "SupervisorMenu.h"
 #include "UIDisplayHandler.h"
 #include <cstring>
-#include <pico/time.h>
-#include "pico_util/include/pico/util/queue.h"
+
 #ifndef UISUPRVSRMAXPRGRMS
 #define UISUPRVSRMAXPRGRMS 6
 #endif
@@ -81,8 +84,10 @@ public:
   int splashScreen_min_ms();
   void splashScreen_min_ms(int minimum_ms);
   void add_program(DesktopicoProgram *program, size_t programSize);
+  bool passDataToProgramID(std::string programID, void *data);
   void set_UIDisplay(UIDisplayHandler *display);
   void set_workQueue(queue_t *queue_ptr);
+  void assign_alarm_pool(alarm_pool_t *pass_ptr);
   void set_startup_program(char name[]);
   void startup_begin();
   void finalize();
