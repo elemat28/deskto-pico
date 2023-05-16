@@ -7,9 +7,13 @@
 #include "pico/util/queue.h"
 #include "Supervisor.h"
 #include "OLEDUIDisplay.h"
+#include "LCUIDisplay.h"
+#include "DEBUGSerialUIDisplay.h"
 #include "TimerProgram.h"
 #include "AutoLoginProgram.h"
 OLEDUIDisplay scrrenObj;
+LCUIDisplay LCScreen;
+DEBUGSerialUIDisplay serialDisplay;
 /*
 #include "Supervisor.h"
 BasicRequiredInfo BASE_INFO("DESKTO-PICO", 0.2, "elemat28");
@@ -40,7 +44,9 @@ queue_t pendingWorkQueue;
 queue_t interruptQueue;
 int pinConfig(void);
 int setupInitialAlarmPool();
-int displaySetup();
+int OLEDSetup();
+int SerialDisplaySetup(SerialUART *uart);
+int LCDisplaySetup();
 int addPrograms();
 int passDataToPrograms();
 int serialSetup();
@@ -90,7 +96,7 @@ void setup()
   usb_hid = Adafruit_USBD_HID(desc_hid_report, sizeof(desc_hid_report), HID_ITF_PROTOCOL_KEYBOARD, 2, false);
   // Serial.begin(115200);
   // Serial.begin(115200);
-  Serial1.begin(115200);
+  Serial1.begin(9600);
   Serial1.println("Serial1");
   Serial1.println("-------------------------------");
   hold_callbackID = (int32_t)-1;
@@ -100,126 +106,47 @@ void setup()
   setupInitialAlarmPool();
   supervisor.assign_alarm_pool(alarm_pool_destroyable);
   threadSafeQueues();
-  displaySetup();
+  // OLEDSetup();
+  // LCDisplaySetup();
+  SerialDisplaySetup(&Serial1);
   addPrograms();
+  passDataToPrograms();
   attachInterrupts();
 
   // scrrenObj.init();
-  Serial1.println("screen int'd");
+  // Serial1.println("screen int'd");
   // scrrenObj.safe_output(message.c_str());
   supervisor.finalize();
   supervisor.startup_finish();
   usb_hid.setReportCallback(NULL, hid_report_callback);
   digitalWrite(15, HIGH);
-
   usb_hid.begin();
-  while (!TinyUSBDevice.mounted())
-  {
-    delay(1);
-    Serial1.println("NOT MTD\n");
-  };
   digitalWrite(15, LOW);
   supervisor.run();
 }
 
-void type()
+void type(const char *character, int delay_ms = 5)
 {
-  int delay_ms = 10;
-  usb_hid.keyboardPress(0, 'p');
-  delay(delay_ms);
-  usb_hid.keyboardRelease(0);
-  delay(delay_ms);
-  usb_hid.keyboardPress(0, 'a');
-  delay(delay_ms);
-  usb_hid.keyboardRelease(0);
-  delay(delay_ms);
-  usb_hid.keyboardPress(0, 's');
-  delay(delay_ms);
-  usb_hid.keyboardRelease(0);
-  delay(delay_ms);
-  usb_hid.keyboardPress(0, 's');
-  delay(delay_ms);
-  usb_hid.keyboardRelease(0);
-  delay(delay_ms);
+  while (*character != '\0')
+  {
+    usb_hid.keyboardPress(0, *character);
+    delay(delay_ms);
+    usb_hid.keyboardRelease(0);
+    delay(delay_ms);
+    character++;
+  };
 }
 
 byte value = 0;
 PendingWork queueOutput;
+String text = "Hello";
 void loop()
 {
-
-  while (true)
-  {
-    // poll gpio once each 2 ms
-    delay(2);
-
-    // used to avoid send multiple consecutive zero report for keyboard
-    static bool keyPressedPreviously = false;
-
-    uint8_t count = 0;
-    uint8_t keycode[6] = {0};
-
-    // scan normal key and send report
-    for (uint8_t i = 0; i < pincount; i++)
-    {
-      if (activeState == digitalRead(pins[i]))
-      {
-        if (pins[i] == 17)
-        {
-          type();
-        }
-        else
-        {
-          // if pin is active (low), add its hid code to key report
-          keycode[count++] = hidcode[i];
-        };
-        // 6 is max keycode per report
-        if (count == 6)
-          break;
-      }
-    }
-
-    if (TinyUSBDevice.suspended() && count)
-    {
-      // Wake up host if we are in suspend mode
-      // and REMOTE_WAKEUP feature is enabled by host
-      Serial1.println("WAKEUP\n");
-      TinyUSBDevice.remoteWakeup();
-    }
-
-    // skip if hid is not ready e.g still transferring previous report
-    if (!usb_hid.ready())
-    {
-
-      digitalWrite(14, HIGH);
-      return;
-    };
-    digitalWrite(15, LOW);
-    if (count)
-    {
-      Serial.println("cnt\n");
-      // Send report if there is key pressed
-      uint8_t const report_id = 0;
-      uint8_t const modifier = 0;
-
-      keyPressedPreviously = true;
-      usb_hid.keyboardReport(report_id, modifier, keycode);
-    }
-    else
-    {
-      // Send All-zero report to indicate there is no keys pressed
-      // Most of the time, it is, though we don't need to send zero report
-      // every loop(), only a key is pressed in previous loop()
-      if (keyPressedPreviously)
-      {
-        keyPressedPreviously = false;
-        usb_hid.keyboardRelease(0);
-      }
-    }
-  };
-
-  Serial1.println("blocking \n");
+  digitalWrite(14, HIGH);
+  // Serial1.println("blocking \n");
   queue_remove_blocking(&pendingWorkQueue, &queueOutput);
+  digitalWrite(14, LOW);
+
   switch (queueOutput.TYPE)
   {
   case BUTTON:
@@ -270,12 +197,30 @@ int pinConfig(void)
   return 0;
 }
 
-int displaySetup()
+int OLEDSetup()
 {
   supervisor.splashScreenDuringStartup(false);
   supervisor.startup_begin();
   scrrenObj = OLEDUIDisplay();
   supervisor.set_UIDisplay(&scrrenObj);
+  return 0;
+}
+
+int SerialDisplaySetup(SerialUART *uart)
+{
+  supervisor.splashScreenDuringStartup(false);
+  supervisor.startup_begin();
+  serialDisplay = DEBUGSerialUIDisplay(uart);
+  supervisor.set_UIDisplay(&serialDisplay);
+  return 0;
+}
+
+int LCDisplaySetup()
+{
+  supervisor.splashScreenDuringStartup(false);
+  supervisor.startup_begin();
+  LCScreen = LCUIDisplay();
+  supervisor.set_UIDisplay(&LCScreen);
   return 0;
 }
 
@@ -385,7 +330,6 @@ void hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8
 {
   (void)report_id;
   (void)bufsize;
-  Serial.println("Dup4\n");
   // LED indicator is output report with only 1 byte length
   if (report_type != HID_REPORT_TYPE_OUTPUT)
     return;
@@ -400,6 +344,7 @@ void hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8
 #ifdef PIN_NEOPIXEL
   pixels.fill(ledIndicator & KEYBOARD_LED_CAPSLOCK ? 0xff0000 : 0x000000);
   pixels.show();
+  Hello
 #endif
 }
 
@@ -409,3 +354,24 @@ int addPrograms()
   supervisor.add_program(new AutoLoginProgram, sizeof(AutoLoginProgram));
   return 0;
 };
+
+std::vector<AutoLoginProgram::AccountDetails> accoutsVector;
+AutoLoginProgram::AutoLoginProgramData autLogin;
+int passDataToPrograms()
+{
+
+  // AUTOLOGIN
+  AutoLoginProgram temp;
+  // printf(exampleAccount.displayName.c_str());
+  printf("\n");
+
+  // accoutsVector.emplace_back(exampleAccount);
+  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("VM", "m13", "NONE"));
+  autLogin.accouts = accoutsVector;
+  autLogin.functPtr = type;
+  printf("passed accounts verctor len: %i \n", accoutsVector.size());
+  std::string id = temp.getID();
+  supervisor.passDataToProgramID(id, &autLogin);
+
+  return 0;
+}

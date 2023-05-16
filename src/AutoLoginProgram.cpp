@@ -109,7 +109,9 @@ void AutoLoginProgram::processPassedData()
   if (hasDataBeenPassed())
   {
     printf("dataPassed \n");
-    auto passedDataPtr = (std::vector<AutoLoginProgram::AccountDetails> *)getDataPtr();
+    auto passedStructPtr = (AutoLoginProgramData *)getDataPtr();
+    auto passedDataPtr = &passedStructPtr->accouts;
+    targetFunct = passedStructPtr->functPtr;
     auto itter = passedDataPtr->begin();
     printf("vector Size %i \n", passedDataPtr->size());
     while (itter != passedDataPtr->end())
@@ -179,6 +181,17 @@ void AutoLoginProgram::OUTPUTSELECTION_configure()
 
 void AutoLoginProgram::triggerOutput()
 {
-  printf("init Blocking... \n");
+  switch (outputSetting)
+  {
+  case USERNAME:
+    targetFunct(accouts.at(current_index).login.c_str(), 5);
+    break;
+  case PASSWORD:
+    targetFunct(accouts.at(current_index).password.c_str(), 5);
+    break;
+  default:
+    break;
+  }
+
   // keyboard.enable_output(true);
 }

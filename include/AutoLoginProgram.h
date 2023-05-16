@@ -5,6 +5,7 @@
 class AutoLoginProgram : public DesktopicoProgram
 {
 public:
+  typedef void (*USBOutputFunct)(const char *, int);
   struct AccountDetails
   {
     std::string displayName;
@@ -22,6 +23,11 @@ public:
       login = username;
       password = psswd;
     };
+  };
+  struct AutoLoginProgramData
+  {
+    std::vector<AutoLoginProgram::AccountDetails> accouts;
+    void (*functPtr)(const char *, int);
   };
   AutoLoginProgram();
   ~AutoLoginProgram();
@@ -42,6 +48,7 @@ private:
     FULL
   };
   OutputMode outputSetting;
+
   std::vector<AutoLoginProgram::AccountDetails> accouts;
   enum SCREEN
   {
@@ -62,6 +69,7 @@ private:
   void ACCOUNTSELECT_configure();
   void OUTPUTSELECTION_configure();
   void triggerOutput();
+  USBOutputFunct targetFunct;
 };
 
 #endif

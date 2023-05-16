@@ -79,6 +79,13 @@
       "top": 114.48,
       "left": 429.26,
       "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -81.36,
+      "left": 341.18,
+      "attrs": { "pins": "i2c" }
     }
   ],
   "connections": [
@@ -103,7 +110,11 @@
     ["oled1:GND", "gnd1:GND", "black", ["v0"]],
     ["vcc1:VCC", "oled1:VCC", "red", ["v-5.51", "h239.45"]],
     ["pico:GP5", "oled1:SCL", "green", ["h334.98", "v-254.68", "h-48.95"]],
-    ["pico:GP4", "oled1:SDA", "green", ["h344.11", "v-285.7", "h-48.25"]]
+    ["pico:GP4", "oled1:SDA", "green", ["h344.11", "v-285.7", "h-48.25"]],
+    ["pico:GP4", "lcd1:SDA", "green", ["h0"]],
+    ["pico:GP5", "lcd1:SCL", "green", ["h0"]],
+    ["gnd1:GND", "lcd1:GND", "black", ["v0"]],
+    ["vcc1:VCC", "lcd1:VCC", "red", ["v0"]]
   ],
   "serialMonitor": { "display": "terminal", "newline": "lf" },
   "dependencies": {}
