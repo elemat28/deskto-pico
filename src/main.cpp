@@ -91,6 +91,7 @@ void c1Entry()
   }
 }
 Adafruit_USBD_HID usb_hid;
+uint8_t const conv_table[128][2] = {HID_ASCII_TO_KEYCODE};
 void setup()
 {
   usb_hid = Adafruit_USBD_HID(desc_hid_report, sizeof(desc_hid_report), HID_ITF_PROTOCOL_KEYBOARD, 2, false);
@@ -127,9 +128,27 @@ void setup()
 
 void type(const char *character, int delay_ms = 5)
 {
+
   while (*character != '\0')
   {
-    usb_hid.keyboardPress(0, *character);
+    uint8_t keycode[6] = {0};
+    uint8_t modifier = 0;
+    uint8_t TAB_KEY = 0x09;
+    if (TAB_KEY == *(uint8_t *)character)
+    {
+      keycode[0] = 0x2b;
+      // usb_hid.keyboardReport(0, modifier, );
+    }
+    else
+    {
+      if (conv_table[*character][0])
+      {
+        modifier = KEYBOARD_MODIFIER_LEFTSHIFT;
+      };
+      keycode[0] = conv_table[*character][1];
+    };
+    usb_hid.keyboardReport(0, modifier, keycode);
+    // usb_hid.keyboardPress(0, *character);
     delay(delay_ms);
     usb_hid.keyboardRelease(0);
     delay(delay_ms);
@@ -366,7 +385,8 @@ int passDataToPrograms()
   printf("\n");
 
   // accoutsVector.emplace_back(exampleAccount);
-  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("VM", "m13", "NONE"));
+  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("MyAcc", "username", "password"));
+  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("AnotherAcc", "2nduser", "secret"));
   autLogin.accouts = accoutsVector;
   autLogin.functPtr = type;
   printf("passed accounts verctor len: %i \n", accoutsVector.size());

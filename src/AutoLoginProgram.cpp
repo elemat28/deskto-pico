@@ -181,6 +181,7 @@ void AutoLoginProgram::OUTPUTSELECTION_configure()
 
 void AutoLoginProgram::triggerOutput()
 {
+  std::string combined;
   switch (outputSetting)
   {
   case USERNAME:
@@ -188,6 +189,12 @@ void AutoLoginProgram::triggerOutput()
     break;
   case PASSWORD:
     targetFunct(accouts.at(current_index).password.c_str(), 5);
+    break;
+  case FULL:
+    combined = accouts.at(current_index).login;
+    combined += '\t';
+    combined.append(accouts.at(current_index).password);
+    targetFunct(combined.c_str(), 5);
     break;
   default:
     break;
