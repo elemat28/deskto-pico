@@ -22,16 +22,24 @@ OLEDUIDisplay::OLEDUIDisplay_t::OLEDUIDisplay_t(int I2Caddress, int width, int h
 
 OLEDUIDisplay::OLEDUIDisplay_t::OLEDUIDisplay_t()
 {
-  I2Caddress = 0x3c;
+  I2Caddress = 0x3C;
   width_px = 128;
-  height_px = 32;
+  height_px = 64;
 };
 
 // LCI2CDisplay_t LCUIDisplay::DEFAULTDISPLAYCONFIG = LCI2CDisplay_t();
-OLEDUIDisplay::OLEDUIDisplay() : screen(128, 32, &Wire, 0)
+OLEDUIDisplay::OLEDUIDisplay() : screen(128, 64, &Wire)
 {
 
   _backlight = false;
+  currentLCDConfig = DEFAULTDISPLAYCONFIG;
+  DISPLAY_FORMATS = DISPLAY_FORMATS;
+};
+
+OLEDUIDisplay::OLEDUIDisplay(TwoWire *wire, u8_t i2c_addr, u8_t width, u8_t height, u8_t rotation)
+{
+  screen = Adafruit_SSD1306(width, height, wire, -1, 400000UL, 400000UL);
+  screen.setRotation(rotation);
   currentLCDConfig = DEFAULTDISPLAYCONFIG;
   DISPLAY_FORMATS = DISPLAY_FORMATS;
 };
@@ -43,8 +51,9 @@ OLEDUIDisplay::OLEDUIDisplay(OLEDUIDisplay_t displayDefinition) : OLEDUIDisplay(
 int OLEDUIDisplay::init()
 {
   // screen = Adafruit_SSD1306(128, 32, &Wire, 0);
-  screen.begin(SSD1306_SWITCHCAPVCC, 0x3c);
-  screen.setTextColor(SSD1306_INVERSE);
+  screen.setTextColor(SSD1306_WHITE);
+  screen.setTextSize(1);
+  screen.begin(SSD1306_SWITCHCAPVCC, 0x3C, true, false);
   screen.display();
   return 0;
 };

@@ -23,6 +23,7 @@ public:
   virtual void output_auto(ProgramReturn *programOtput);
   static OLEDUIDisplay_t DEFAULTDISPLAYCONFIG;
   OLEDUIDisplay();
+  OLEDUIDisplay(TwoWire *wire, u8_t i2c_addr, u8_t width, u8_t height, u8_t rotation);
   OLEDUIDisplay(OLEDUIDisplay_t displayDefinition);
   int init();
   void clear();

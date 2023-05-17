@@ -28,6 +28,7 @@ uint8_t const desc_hid_report[] =
 #define SELECT_GPIO 8
 #define NEXT_GPIO 7
 #define GPIO_DEBOUCE_MS 15
+#define SCREEN_OUTPUT_GPIO 17
 // Timer Pools
 alarm_pool_t *alarm_pool_primary;
 alarm_pool_t *alarm_pool_secondary;
@@ -58,14 +59,6 @@ void gpio_callback(uint gpio, uint32_t events);
 void hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize);
 uint8_t keycode[6] = {0};
 uint8_t count = 0;
-#ifdef ARDUINO_ARCH_RP2040
-uint8_t pins[] = {16, 17, 18, 19};
-#else
-uint8_t pins[] = {A0, A1, A2, A3};
-#endif
-
-// number of pins
-uint8_t pincount = sizeof(pins) / sizeof(pins[0]);
 
 // For keycode definition check out https://github.com/hathach/tinyusb/blob/master/src/class/hid/hid.h
 uint8_t hidcode[] = {HID_KEY_ARROW_RIGHT, HID_KEY_ARROW_LEFT, HID_KEY_ARROW_DOWN, HID_KEY_ARROW_UP};
@@ -94,6 +87,7 @@ Adafruit_USBD_HID usb_hid;
 uint8_t const conv_table[128][2] = {HID_ASCII_TO_KEYCODE};
 void setup()
 {
+  delay(250);
   usb_hid = Adafruit_USBD_HID(desc_hid_report, sizeof(desc_hid_report), HID_ITF_PROTOCOL_KEYBOARD, 2, false);
   // Serial.begin(115200);
   // Serial.begin(115200);
@@ -107,9 +101,17 @@ void setup()
   setupInitialAlarmPool();
   supervisor.assign_alarm_pool(alarm_pool_destroyable);
   threadSafeQueues();
-  // OLEDSetup();
-  // LCDisplaySetup();
-  SerialDisplaySetup(&Serial1);
+  if (!digitalRead(SCREEN_OUTPUT_GPIO))
+  {
+    //  LCDisplaySetup();
+    Serial1.println("Booting into GUI...");
+    OLEDSetup();
+  }
+  else
+  {
+    SerialDisplaySetup(&Serial1);
+  };
+
   addPrograms();
   passDataToPrograms();
   attachInterrupts();
@@ -134,6 +136,7 @@ void type(const char *character, int delay_ms = 5)
     uint8_t keycode[6] = {0};
     uint8_t modifier = 0;
     uint8_t TAB_KEY = 0x09;
+    char lookup_target;
     if (TAB_KEY == *(uint8_t *)character)
     {
       keycode[0] = 0x2b;
@@ -141,11 +144,21 @@ void type(const char *character, int delay_ms = 5)
     }
     else
     {
-      if (conv_table[*character][0])
+      switch (*character)
+      {
+      case '@':
+        lookup_target = '"';
+        break;
+
+      default:
+        lookup_target = *character;
+        break;
+      }
+      if (conv_table[lookup_target][0])
       {
         modifier = KEYBOARD_MODIFIER_LEFTSHIFT;
       };
-      keycode[0] = conv_table[*character][1];
+      keycode[0] = conv_table[lookup_target][1];
     };
     usb_hid.keyboardReport(0, modifier, keycode);
     // usb_hid.keyboardPress(0, *character);
@@ -209,21 +222,53 @@ int pinConfig(void)
   pinMode(NEXT_GPIO, INPUT_PULLUP);
   pinMode(15, OUTPUT);
   pinMode(14, OUTPUT);
-  pinMode(16, INPUT_PULLUP);
-  pinMode(17, INPUT_PULLUP);
-  pinMode(18, INPUT_PULLUP);
-  pinMode(19, INPUT_PULLUP);
+  pinMode(SCREEN_OUTPUT_GPIO, INPUT_PULLUP);
   return 0;
 }
 
 int OLEDSetup()
 {
+  Wire1.setSDA(26);
+  Wire1.setSCL(27);
+  Wire1.setClock(400000UL);
+  Wire.setClock(400000UL);
+  Wire1.begin();
+  Wire.begin();
+  // Adafruit_SSD1306 wire1Screen = Adafruit_SSD1306(128, 64, &Wire1, -1, 400000UL, 400000UL);
+  //  SSD1306_SWITCHCAPVCC
+  //  SSD1306_EXTERNALVCC
+  // wire1Screen.begin(SSD1306_SWITCHCAPVCC, 0x3C, true, false);
+  // wire1Screen.display();
   supervisor.splashScreenDuringStartup(false);
   supervisor.startup_begin();
-  scrrenObj = OLEDUIDisplay();
+  // scrrenObj = OLEDUIDisplay();
+  // scrrenObj = OLEDUIDisplay(&Wire, 0x3C, 128, 64, 0);
+  scrrenObj = OLEDUIDisplay(&Wire1, 0x3C, 128, 64, 2);
   supervisor.set_UIDisplay(&scrrenObj);
   return 0;
 }
+
+/*
+int OLEDSetup()
+{
+  Wire.setSDA(4);
+  Wire.setSCL(5);
+  Wire.setClock(100000UL);
+  Serial1.println("wire1begin");
+  Wire.begin();
+  Serial1.println("newobj");
+  scrrenObj = OLEDUIDisplay(&Wire, 0x3C, 128, 64, 0);
+  Serial1.println("init");
+  scrrenObj.init();
+  Serial1.println("delay");
+  delay(5000);
+  supervisor.splashScreenDuringStartup(false);
+  supervisor.startup_begin();
+  supervisor.set_UIDisplay(&scrrenObj);
+  Serial1.println("return");
+  return 0;
+}
+*/
 
 int SerialDisplaySetup(SerialUART *uart)
 {
@@ -385,8 +430,8 @@ int passDataToPrograms()
   printf("\n");
 
   // accoutsVector.emplace_back(exampleAccount);
-  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("MyAcc", "username", "password"));
-  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("AnotherAcc", "2nduser", "secret"));
+  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("Acc1", "Username1", "Password1"));
+  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("Acc2", "Username2", "Password2"));
   autLogin.accouts = accoutsVector;
   autLogin.functPtr = type;
   printf("passed accounts verctor len: %i \n", accoutsVector.size());
