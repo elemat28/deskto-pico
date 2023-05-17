@@ -87,10 +87,13 @@ Adafruit_USBD_HID usb_hid;
 uint8_t const conv_table[128][2] = {HID_ASCII_TO_KEYCODE};
 void setup()
 {
-  delay(250);
   usb_hid = Adafruit_USBD_HID(desc_hid_report, sizeof(desc_hid_report), HID_ITF_PROTOCOL_KEYBOARD, 2, false);
+
+  usb_hid.setReportCallback(NULL, hid_report_callback);
+  usb_hid.begin();
+
   // Serial.begin(115200);
-  // Serial.begin(115200);
+  Serial.begin(115200);
   Serial1.begin(9600);
   Serial1.println("Serial1");
   Serial1.println("-------------------------------");
@@ -121,7 +124,6 @@ void setup()
   // scrrenObj.safe_output(message.c_str());
   supervisor.finalize();
   supervisor.startup_finish();
-  usb_hid.setReportCallback(NULL, hid_report_callback);
   digitalWrite(15, HIGH);
   usb_hid.begin();
   digitalWrite(15, LOW);
@@ -231,9 +233,7 @@ int OLEDSetup()
   Wire1.setSDA(26);
   Wire1.setSCL(27);
   Wire1.setClock(400000UL);
-  Wire.setClock(400000UL);
   Wire1.begin();
-  Wire.begin();
   // Adafruit_SSD1306 wire1Screen = Adafruit_SSD1306(128, 64, &Wire1, -1, 400000UL, 400000UL);
   //  SSD1306_SWITCHCAPVCC
   //  SSD1306_EXTERNALVCC
