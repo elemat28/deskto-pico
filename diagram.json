@@ -78,7 +78,16 @@
       "id": "oled1",
       "top": 114.48,
       "left": 429.26,
+      "rotate": 180,
       "attrs": {}
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "sw1",
+      "top": 258.27,
+      "left": 89.78,
+      "rotate": 270,
+      "attrs": { "value": "1" }
     }
   ],
   "connections": [
@@ -100,10 +109,12 @@
     ["pico:GND.3", "btn1:2.r", "black", ["h151.59", "v-89.53"]],
     ["btn1:2.l", "btn2:2.r", "black", ["h0"]],
     ["btn2:2.l", "btn3:2.r", "black", ["h0"]],
-    ["oled1:GND", "gnd1:GND", "black", ["v0"]],
-    ["vcc1:VCC", "oled1:VCC", "red", ["v-5.51", "h239.45"]],
-    ["pico:GP5", "oled1:SCL", "green", ["h334.98", "v-254.68", "h-48.95"]],
-    ["pico:GP4", "oled1:SDA", "green", ["h344.11", "v-285.7", "h-48.25"]]
+    ["pico:GND.5", "sw1:2", "black", ["h0"]],
+    ["pico:GP17", "sw1:3", "green", ["h0"]],
+    ["oled1:SCL", "pico:GP27", "green", ["v12.73", "h-336.59", "v160.37"]],
+    ["oled1:SDA", "pico:GP26", "green", ["v-0.44", "h-333.13"]],
+    ["oled1:VCC", "vcc1:VCC", "red", ["v20.45", "h-252.91"]],
+    ["oled1:GND", "gnd1:GND", "black", ["v26.36", "h-240.55"]]
   ],
   "serialMonitor": { "display": "terminal", "newline": "lf" },
   "dependencies": {}

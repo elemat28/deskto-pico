@@ -1,28 +1,34 @@
 #include <Arduino.h>
 #include <pico.h>
-#include <pico/stdlib.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <stdio_ext.h>
+#include <pico/stdio.h>
 #include <Wire.h>
+#include <Adafruit_TinyUSB.h>
 #include "pico/util/queue.h"
 #include "Supervisor.h"
 #include "OLEDUIDisplay.h"
+#include "LCUIDisplay.h"
+#include "DEBUGSerialUIDisplay.h"
 #include "TimerProgram.h"
 #include "AutoLoginProgram.h"
-
 OLEDUIDisplay scrrenObj;
+LCUIDisplay LCScreen;
+DEBUGSerialUIDisplay serialDisplay;
 /*
 #include "Supervisor.h"
 BasicRequiredInfo BASE_INFO("DESKTO-PICO", 0.2, "elemat28");
 Supervisor supervisor(BASE_INFO);
 */
-
+uint8_t const desc_hid_report[] =
+    {
+        TUD_HID_REPORT_DESC_KEYBOARD()};
 // Buttons
 #define HOME_BUTTON -1
 #define RETURN_GPIO 9
 #define SELECT_GPIO 8
 #define NEXT_GPIO 7
 #define GPIO_DEBOUCE_MS 15
+#define SCREEN_OUTPUT_GPIO 17
 // Timer Pools
 alarm_pool_t *alarm_pool_primary;
 alarm_pool_t *alarm_pool_secondary;
@@ -39,7 +45,9 @@ queue_t pendingWorkQueue;
 queue_t interruptQueue;
 int pinConfig(void);
 int setupInitialAlarmPool();
-int displaySetup();
+int OLEDSetup();
+int SerialDisplaySetup(SerialUART *uart);
+int LCDisplaySetup();
 int addPrograms();
 int passDataToPrograms();
 int serialSetup();
@@ -47,36 +55,132 @@ int threadSafeQueues();
 int attachInterrupts();
 int64_t hold_callback(alarm_id_t id, void *user_data);
 void gpio_callback(uint gpio, uint32_t events);
+
+void hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize);
+uint8_t keycode[6] = {0};
+uint8_t count = 0;
+
+// For keycode definition check out https://github.com/hathach/tinyusb/blob/master/src/class/hid/hid.h
+uint8_t hidcode[] = {HID_KEY_ARROW_RIGHT, HID_KEY_ARROW_LEFT, HID_KEY_ARROW_DOWN, HID_KEY_ARROW_UP};
+static bool keyPressedPreviously = false;
+#if defined(ARDUINO_SAMD_CIRCUITPLAYGROUND_EXPRESS) || defined(ARDUINO_NRF52840_CIRCUITPLAY) || defined(ARDUINO_FUNHOUSE_ESP32S2)
+bool activeState = true;
+#else
+bool activeState = false;
+#endif
 Supervisor supervisor = Supervisor();
 String message = String("Hello");
+void core1_entry()
+{
+}
+int x = 0;
+void c1Entry()
+{
+  while (true)
+  {
+
+    delay(1000);
+    digitalWrite(15, !digitalRead(15));
+  }
+}
+Adafruit_USBD_HID usb_hid;
+uint8_t const conv_table[128][2] = {HID_ASCII_TO_KEYCODE};
 void setup()
 {
+  usb_hid = Adafruit_USBD_HID(desc_hid_report, sizeof(desc_hid_report), HID_ITF_PROTOCOL_KEYBOARD, 2, false);
+
+  usb_hid.setReportCallback(NULL, hid_report_callback);
+  usb_hid.begin();
+
+  // Serial.begin(115200);
   Serial.begin(115200);
-  Serial1.begin(115200);
+  Serial1.begin(9600);
   Serial1.println("Serial1");
   Serial1.println("-------------------------------");
   hold_callbackID = (int32_t)-1;
   pinConfig();
+
+  // multicore_launch_core1(c1Entry);
   setupInitialAlarmPool();
   supervisor.assign_alarm_pool(alarm_pool_destroyable);
   threadSafeQueues();
-  displaySetup();
+  if (!digitalRead(SCREEN_OUTPUT_GPIO))
+  {
+    //  LCDisplaySetup();
+    Serial1.println("Booting into GUI...");
+    OLEDSetup();
+  }
+  else
+  {
+    SerialDisplaySetup(&Serial1);
+  };
+
   addPrograms();
+  passDataToPrograms();
   attachInterrupts();
 
   // scrrenObj.init();
-  Serial1.println("screen int'd");
+  // Serial1.println("screen int'd");
   // scrrenObj.safe_output(message.c_str());
   supervisor.finalize();
   supervisor.startup_finish();
+  digitalWrite(15, HIGH);
+  usb_hid.begin();
+  digitalWrite(15, LOW);
   supervisor.run();
+}
+
+void type(const char *character, int delay_ms = 5)
+{
+
+  while (*character != '\0')
+  {
+    uint8_t keycode[6] = {0};
+    uint8_t modifier = 0;
+    uint8_t TAB_KEY = 0x09;
+    char lookup_target;
+    if (TAB_KEY == *(uint8_t *)character)
+    {
+      keycode[0] = 0x2b;
+      // usb_hid.keyboardReport(0, modifier, );
+    }
+    else
+    {
+      switch (*character)
+      {
+      case '@':
+        lookup_target = '"';
+        break;
+
+      default:
+        lookup_target = *character;
+        break;
+      }
+      if (conv_table[lookup_target][0])
+      {
+        modifier = KEYBOARD_MODIFIER_LEFTSHIFT;
+      };
+      keycode[0] = conv_table[lookup_target][1];
+    };
+    usb_hid.keyboardReport(0, modifier, keycode);
+    // usb_hid.keyboardPress(0, *character);
+    delay(delay_ms);
+    usb_hid.keyboardRelease(0);
+    delay(delay_ms);
+    character++;
+  };
 }
 
 byte value = 0;
 PendingWork queueOutput;
+String text = "Hello";
 void loop()
 {
+  digitalWrite(14, HIGH);
+  // Serial1.println("blocking \n");
   queue_remove_blocking(&pendingWorkQueue, &queueOutput);
+  digitalWrite(14, LOW);
+
   switch (queueOutput.TYPE)
   {
   case BUTTON:
@@ -118,15 +222,69 @@ int pinConfig(void)
   pinMode(RETURN_GPIO, INPUT_PULLUP);
   pinMode(SELECT_GPIO, INPUT_PULLUP);
   pinMode(NEXT_GPIO, INPUT_PULLUP);
+  pinMode(15, OUTPUT);
+  pinMode(14, OUTPUT);
+  pinMode(SCREEN_OUTPUT_GPIO, INPUT_PULLUP);
   return 0;
 }
 
-int displaySetup()
+int OLEDSetup()
+{
+  Wire1.setSDA(26);
+  Wire1.setSCL(27);
+  Wire1.setClock(400000UL);
+  Wire1.begin();
+  // Adafruit_SSD1306 wire1Screen = Adafruit_SSD1306(128, 64, &Wire1, -1, 400000UL, 400000UL);
+  //  SSD1306_SWITCHCAPVCC
+  //  SSD1306_EXTERNALVCC
+  // wire1Screen.begin(SSD1306_SWITCHCAPVCC, 0x3C, true, false);
+  // wire1Screen.display();
+  supervisor.splashScreenDuringStartup(false);
+  supervisor.startup_begin();
+  // scrrenObj = OLEDUIDisplay();
+  // scrrenObj = OLEDUIDisplay(&Wire, 0x3C, 128, 64, 0);
+  scrrenObj = OLEDUIDisplay(&Wire1, 0x3C, 128, 64, 2);
+  supervisor.set_UIDisplay(&scrrenObj);
+  return 0;
+}
+
+/*
+int OLEDSetup()
+{
+  Wire.setSDA(4);
+  Wire.setSCL(5);
+  Wire.setClock(100000UL);
+  Serial1.println("wire1begin");
+  Wire.begin();
+  Serial1.println("newobj");
+  scrrenObj = OLEDUIDisplay(&Wire, 0x3C, 128, 64, 0);
+  Serial1.println("init");
+  scrrenObj.init();
+  Serial1.println("delay");
+  delay(5000);
+  supervisor.splashScreenDuringStartup(false);
+  supervisor.startup_begin();
+  supervisor.set_UIDisplay(&scrrenObj);
+  Serial1.println("return");
+  return 0;
+}
+*/
+
+int SerialDisplaySetup(SerialUART *uart)
 {
   supervisor.splashScreenDuringStartup(false);
   supervisor.startup_begin();
-  scrrenObj = OLEDUIDisplay();
-  supervisor.set_UIDisplay(&scrrenObj);
+  serialDisplay = DEBUGSerialUIDisplay(uart);
+  supervisor.set_UIDisplay(&serialDisplay);
+  return 0;
+}
+
+int LCDisplaySetup()
+{
+  supervisor.splashScreenDuringStartup(false);
+  supervisor.startup_begin();
+  LCScreen = LCUIDisplay();
+  supervisor.set_UIDisplay(&LCScreen);
   return 0;
 }
 
@@ -225,10 +383,33 @@ int setupInitialAlarmPool()
 int threadSafeQueues()
 {
   queue_init(&interruptQueue, sizeof(uint), 4);
+
   queue_init(&pendingWorkQueue, sizeof(PendingWork), 4);
   supervisor.set_workQueue(&pendingWorkQueue);
 
   return 0;
+}
+
+void hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
+{
+  (void)report_id;
+  (void)bufsize;
+  // LED indicator is output report with only 1 byte length
+  if (report_type != HID_REPORT_TYPE_OUTPUT)
+    return;
+
+  // The LED bit map is as follows: (also defined by KEYBOARD_LED_* )
+  // Kana (4) | Compose (3) | ScrollLock (2) | CapsLock (1) | Numlock (0)
+  uint8_t ledIndicator = buffer[0];
+  // usb_hid.keyboardPress(0, 'A');
+  //  turn on LED if capslock is set
+  digitalWrite(LED_BUILTIN, ledIndicator & KEYBOARD_LED_CAPSLOCK);
+
+#ifdef PIN_NEOPIXEL
+  pixels.fill(ledIndicator & KEYBOARD_LED_CAPSLOCK ? 0xff0000 : 0x000000);
+  pixels.show();
+  Hello
+#endif
 }
 
 int addPrograms()
@@ -237,3 +418,25 @@ int addPrograms()
   supervisor.add_program(new AutoLoginProgram, sizeof(AutoLoginProgram));
   return 0;
 };
+
+std::vector<AutoLoginProgram::AccountDetails> accoutsVector;
+AutoLoginProgram::AutoLoginProgramData autLogin;
+int passDataToPrograms()
+{
+
+  // AUTOLOGIN
+  AutoLoginProgram temp;
+  // printf(exampleAccount.displayName.c_str());
+  printf("\n");
+
+  // accoutsVector.emplace_back(exampleAccount);
+  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("Acc1", "Username1", "Password1"));
+  accoutsVector.emplace_back(AutoLoginProgram::AccountDetails("Acc2", "Username2", "Password2"));
+  autLogin.accouts = accoutsVector;
+  autLogin.functPtr = type;
+  printf("passed accounts verctor len: %i \n", accoutsVector.size());
+  std::string id = temp.getID();
+  supervisor.passDataToProgramID(id, &autLogin);
+
+  return 0;
+}
