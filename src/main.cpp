@@ -24,11 +24,20 @@ uint8_t const desc_hid_report[] =
         TUD_HID_REPORT_DESC_KEYBOARD()};
 // Buttons
 #define HOME_BUTTON -1
-#define RETURN_GPIO 9
-#define SELECT_GPIO 8
-#define NEXT_GPIO 7
+#define RETURN_GPIO 19
+#define SELECT_GPIO 20
+#define NEXT_GPIO 21
 #define GPIO_DEBOUCE_MS 15
-#define SCREEN_OUTPUT_GPIO 17
+// OLED resolution selector
+#define OLED_Y_RES_32_SELECT_GPIO 17
+#define OLED_Y_RES_64_SELECT_GPIO 18
+// I2C config
+#define I2C_WIRE1_SDA_GPIO 14
+#define I2C_WIRE1_SCL_GPIO 15
+// RGB_LED pind
+#define LED_GPIO_R 13
+#define LED_GPIO_G 12
+#define LED_GPIO_B 11
 // Timer Pools
 alarm_pool_t *alarm_pool_primary;
 alarm_pool_t *alarm_pool_secondary;
@@ -80,7 +89,7 @@ void c1Entry()
   {
 
     delay(1000);
-    digitalWrite(15, !digitalRead(15));
+    digitalWrite(LED_GPIO_G, !digitalRead(LED_GPIO_G));
   }
 }
 Adafruit_USBD_HID usb_hid;
@@ -104,7 +113,7 @@ void setup()
   setupInitialAlarmPool();
   supervisor.assign_alarm_pool(alarm_pool_destroyable);
   threadSafeQueues();
-  if (!digitalRead(SCREEN_OUTPUT_GPIO))
+  if ((!digitalRead(OLED_Y_RES_32_SELECT_GPIO) | !digitalRead(OLED_Y_RES_64_SELECT_GPIO)))
   {
     //  LCDisplaySetup();
     Serial1.println("Booting into GUI...");
@@ -124,9 +133,9 @@ void setup()
   // scrrenObj.safe_output(message.c_str());
   supervisor.finalize();
   supervisor.startup_finish();
-  digitalWrite(15, HIGH);
+  digitalWrite(LED_GPIO_G, HIGH);
   usb_hid.begin();
-  digitalWrite(15, LOW);
+  digitalWrite(LED_GPIO_G, LOW);
   supervisor.run();
 }
 
@@ -176,10 +185,10 @@ PendingWork queueOutput;
 String text = "Hello";
 void loop()
 {
-  digitalWrite(14, HIGH);
+  digitalWrite(LED_GPIO_R, HIGH);
   // Serial1.println("blocking \n");
   queue_remove_blocking(&pendingWorkQueue, &queueOutput);
-  digitalWrite(14, LOW);
+  digitalWrite(LED_GPIO_R, LOW);
 
   switch (queueOutput.TYPE)
   {
@@ -222,16 +231,29 @@ int pinConfig(void)
   pinMode(RETURN_GPIO, INPUT_PULLUP);
   pinMode(SELECT_GPIO, INPUT_PULLUP);
   pinMode(NEXT_GPIO, INPUT_PULLUP);
-  pinMode(15, OUTPUT);
-  pinMode(14, OUTPUT);
-  pinMode(SCREEN_OUTPUT_GPIO, INPUT_PULLUP);
+  pinMode(OLED_Y_RES_32_SELECT_GPIO, INPUT_PULLUP);
+  pinMode(OLED_Y_RES_64_SELECT_GPIO, INPUT_PULLUP);
+  pinMode(LED_GPIO_R, OUTPUT);
+  pinMode(LED_GPIO_G, OUTPUT);
+  pinMode(LED_GPIO_B, OUTPUT);
+
   return 0;
 }
 
 int OLEDSetup()
 {
-  Wire1.setSDA(26);
-  Wire1.setSCL(27);
+  u8_t y_res = 64;
+  if (!digitalRead(OLED_Y_RES_32_SELECT_GPIO))
+  {
+    y_res = 32;
+  }
+  else if (!digitalRead(OLED_Y_RES_64_SELECT_GPIO))
+  {
+    y_res = 64;
+  };
+  Wire1.setSDA(I2C_WIRE1_SDA_GPIO);
+  Wire1.setSCL(I2C_WIRE1_SCL_GPIO);
+
   Wire1.setClock(400000UL);
   Wire1.begin();
   // Adafruit_SSD1306 wire1Screen = Adafruit_SSD1306(128, 64, &Wire1, -1, 400000UL, 400000UL);
@@ -243,7 +265,7 @@ int OLEDSetup()
   supervisor.startup_begin();
   // scrrenObj = OLEDUIDisplay();
   // scrrenObj = OLEDUIDisplay(&Wire, 0x3C, 128, 64, 0);
-  scrrenObj = OLEDUIDisplay(&Wire1, 0x3C, 128, 64, 2);
+  scrrenObj = OLEDUIDisplay(&Wire1, 0x3C, 128, y_res, 0);
   supervisor.set_UIDisplay(&scrrenObj);
   return 0;
 }
@@ -290,9 +312,9 @@ int LCDisplaySetup()
 
 int attachInterrupts()
 {
-  gpio_set_irq_enabled_with_callback(9, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
-  gpio_set_irq_enabled_with_callback(8, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
-  gpio_set_irq_enabled_with_callback(7, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+  gpio_set_irq_enabled_with_callback(RETURN_GPIO, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+  gpio_set_irq_enabled_with_callback(SELECT_GPIO, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+  gpio_set_irq_enabled_with_callback(NEXT_GPIO, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
   return 0;
 }
 
