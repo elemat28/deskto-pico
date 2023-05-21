@@ -2,18 +2,6 @@
 #define UISYSINFO_H
 #include "DesktopicoProgram.h"
 
-struct BasicRequiredInfo
-{
-  std::string OS_NAME;
-  float version;
-  std::string author_name;
-  BasicRequiredInfo(std::string project_name, float currentVersion, std::string author)
-  {
-    OS_NAME = project_name;
-    version = currentVersion;
-    author_name = author;
-  };
-};
 class AboutSystemInfo : public DesktopicoProgram
 {
 

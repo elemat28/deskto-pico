@@ -14,11 +14,6 @@
 #include "RgbLED.h"
 #include "PicoBuzzer.h"
 
-std::vector<SongNote> button_press = {
-    SongNote(NOTE_G3, 50),
-    // SongNote(NOTE_B3, 100)
-};
-
 std::vector<SongNote> happy_song = {
     SongNote(NOTE_F3, 250),
     SongNote(NOTE_E3, 250),
@@ -103,6 +98,7 @@ bool activeState = true;
 bool activeState = false;
 #endif
 Supervisor supervisor = Supervisor();
+UINotification *supervisor_ptr = &supervisor;
 String message = String("Hello");
 void core1_entry()
 {
@@ -139,8 +135,7 @@ void setup()
   Serial1.printf("len %u \n", note.len_us);
 
   led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B, LED_SINK);
-  led.set_brightness(0.5);
-  led.set_color(130, 255, 151);
+
   // multicore_launch_core1(c1Entry);
 
   supervisor.assign_alarm_pool(alarm_pool_destroyable);
@@ -160,17 +155,16 @@ void setup()
   addPrograms();
   passDataToPrograms();
   attachInterrupts();
-
+  supervisor.set_RGBLed(led);
+  supervisor.set_Buzzer(buzzer);
   //  scrrenObj.init();
   //  Serial1.println("screen int'd");
   //  scrrenObj.safe_output(message.c_str());
   supervisor.finalize();
   supervisor.startup_finish();
   // usb_hid.begin();
-  led.turn_on();
-  led.update_output();
   supervisor.run();
-  buzzer.play(happy_song);
+  // buzzer.play(happy_song);
 }
 
 void type(const char *character, int delay_ms = 5)
@@ -225,13 +219,9 @@ void loop()
   switch (queueOutput.TYPE)
   {
   case BUTTON:
-
-    buzzer.play(button_press);
     switch (queueOutput.PENDING_OBJECT_ID)
     {
     case HOME_BUTTON:
-      led.turn_off();
-      led.update_output();
       supervisor.return_to_menu();
       supervisor.run(true);
       noUpdate = true;
@@ -245,9 +235,6 @@ void loop()
       supervisor.REQUIRED_BUTTONS.SELECT.trigger_function();
       break;
     case NEXT_GPIO:
-      led.set_state(0, 0, 255, 0.75);
-      led.turn_on();
-      led.update_output();
       printf("NEXT PRESSED \n");
       supervisor.REQUIRED_BUTTONS.NEXT.trigger_function();
       break;

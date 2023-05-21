@@ -1,7 +1,21 @@
 #include "Supervisor.h"
-
-Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 1.0, "elemat28"))
+std::vector<SongNote> button_press = {
+    SongNote(NOTE_G3, 50),
+    // SongNote(NOTE_B3, 100)
+};
+Supervisor::Supervisor() : OS_MENU(),
+                           SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 1.0, "elemat28"))
 {
+  SHORT_ERROR = {
+      SongNote(NOTE_DS3, 150),
+      SongNote(NOTE_D3, 50),
+      SongNote(NOTE_F3, 50),
+      SongNote(NOTE_DS3, 150),
+      SongNote(NOTE_D3, 50),
+      SongNote(NOTE_F3, 50),
+      SongNote(NOTE_DS3, 150),
+      SongNote(NOTE_D3, 50),
+      SongNote(NOTE_F3, 50)};
 
   _ver = 0.1;
   BasicRequiredInfo info("DESKTO-PICO", 1.0, "elemat28");
@@ -21,7 +35,7 @@ Supervisor::Supervisor() : OS_MENU(), SYS_INFO(BasicRequiredInfo("DESKTO-PICO", 
   _refresh_alarm_ID = (int32_t)-1;
   POOL_ID = 0;
   NUM_OF_TIMERS = 62;
-
+  current_notifcation_state = DEFAULT;
   std::function<void(void)> return_button_funct = std::bind(&Supervisor::_trigger_return, this);
   std::function<void(void)> select_button_funct = std::bind(&Supervisor::_trigger_select, this);
   std::function<void(void)> next_button_funct = std::bind(&Supervisor::_trigger_next, this);
@@ -116,6 +130,16 @@ void Supervisor::set_workQueue(queue_t *queue_ptr)
 {
   temp_workQueue = queue_ptr;
 }
+
+void Supervisor::set_Buzzer(PicoBuzzer &object)
+{
+  buzzer = object;
+};
+
+void Supervisor::set_RGBLed(RgbLED &object)
+{
+  notificationLED = object;
+};
 
 void Supervisor::set_startup_program(char name[])
 {
@@ -228,6 +252,7 @@ void Supervisor::run()
   bool justSet = false;
   if (_pendingButton)
   {
+    blip_info();
     _pendingButton = false;
     _pendingScreenRefresh = true;
     if (_pressedIndex == 0)
@@ -372,6 +397,7 @@ void Supervisor::_return_to_main_menu()
 {
 
   destroy_and_recreate_alarm_pool();
+  state_default();
   _currentRunTarget = &OS_MENU;
   _currentRunTarget->init();
   run(true);
@@ -417,3 +443,67 @@ int Supervisor::debugFunc(void *data)
   }
   return 0;
 }
+
+int Supervisor::_blip_info()
+{
+  if (&buzzer != nullptr)
+  {
+    buzzer.play(button_press);
+  }
+  return 0;
+};
+int Supervisor::_blip_warn() { return 0; };
+int Supervisor::_blip_error() { return 0; };
+int Supervisor::_blip_success() { return 0; };
+int Supervisor::_short_error()
+{
+  Serial1.println("_short_error!");
+  if (&notificationLED != nullptr)
+  {
+    Serial1.println("notificationLED not null!");
+    notificationLED.set_state(255, 0, 0, 1);
+    notificationLED.turn_on();
+    notificationLED.update_output();
+  }
+  else
+  {
+    Serial1.println("notificationLED null!");
+  };
+  if (&buzzer != nullptr)
+  {
+    buzzer.play(SHORT_ERROR);
+  }
+  return 0;
+};
+int Supervisor::_short_success() { return 0; };
+int Supervisor::_state_default()
+{
+  if (&notificationLED != nullptr)
+  {
+    notificationLED.turn_off();
+    notificationLED.update_output();
+  };
+  return 0;
+};
+int Supervisor::_state_alert()
+{
+  Serial1.println("alert!");
+  if (&notificationLED != nullptr)
+  {
+    Serial1.println("notificationLED not null!");
+    notificationLED.set_state(255, 255, 0, 1);
+    notificationLED.turn_on();
+    notificationLED.update_output();
+  }
+  else
+  {
+    Serial1.println("notificationLED null!");
+  };
+  return 0;
+};
+int Supervisor::_state_alarm() { return 0; };
+int Supervisor::_state_waiting() { return 0; };
+int Supervisor::_await_info(uint optional_timeout) { return 0; };
+int Supervisor::_await_warn(uint optional_timeout) { return 0; };
+int Supervisor::_await_error(uint optional_timeout) { return 0; };
+int Supervisor::_await_choice(uint optional_timeout) { return 0; };
