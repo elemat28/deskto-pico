@@ -12,6 +12,20 @@
 #include "TimerProgram.h"
 #include "AutoLoginProgram.h"
 #include "RgbLED.h"
+#include "PicoBuzzer.h"
+
+std::vector<SongNote> button_press = {
+    SongNote(NOTE_G3, 50),
+    // SongNote(NOTE_B3, 100)
+};
+
+std::vector<SongNote> happy_song = {
+    SongNote(NOTE_F3, 250),
+    SongNote(NOTE_E3, 250),
+    SongNote(NOTE_G3, 250),
+    SongNote(NOTE_A3, 250),
+    // SongNote(NOTE_B3, 100)
+};
 OLEDUIDisplay scrrenObj;
 LCUIDisplay LCScreen;
 DEBUGSerialUIDisplay serialDisplay;
@@ -40,6 +54,9 @@ uint8_t const desc_hid_report[] =
 #define LED_GPIO_G 12
 #define LED_GPIO_B 11
 RgbLED led;
+// Buzzer
+#define BUZZER_GPIO 10
+PicoBuzzer buzzer;
 // Timer Pools
 alarm_pool_t *alarm_pool_primary;
 alarm_pool_t *alarm_pool_secondary;
@@ -47,6 +64,9 @@ alarm_pool_t *alarm_pool_destroyable;
 
 absolute_time_t DeBounce;
 alarm_id_t hold_callbackID;
+
+struct repeating_timer timer;
+
 // put function declarations here:
 bool noUpdate = false;
 bool printMsg = false;
@@ -55,16 +75,18 @@ String output = String();
 queue_t pendingWorkQueue;
 queue_t interruptQueue;
 int pinConfig(void);
+int USBHidSetup();
+int serialSetup();
 int setupInitialAlarmPool();
 int OLEDSetup();
 int SerialDisplaySetup(SerialUART *uart);
 int LCDisplaySetup();
 int addPrograms();
 int passDataToPrograms();
-int serialSetup();
 int threadSafeQueues();
 int attachInterrupts();
 int64_t hold_callback(alarm_id_t id, void *user_data);
+int64_t tone_callback(alarm_id_t id, void *user_data);
 void gpio_callback(uint gpio, uint32_t events);
 
 void hid_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize);
@@ -98,24 +120,30 @@ Adafruit_USBD_HID usb_hid;
 uint8_t const conv_table[128][2] = {HID_ASCII_TO_KEYCODE};
 void setup()
 {
-  usb_hid = Adafruit_USBD_HID(desc_hid_report, sizeof(desc_hid_report), HID_ITF_PROTOCOL_KEYBOARD, 2, false);
 
-  usb_hid.setReportCallback(NULL, hid_report_callback);
+  USBHidSetup();
   usb_hid.begin();
-
-  // Serial.begin(115200);
-  Serial.begin(115200);
-  Serial1.begin(9600);
-  Serial1.println("Serial1");
-  Serial1.println("-------------------------------");
+  serialSetup();
   hold_callbackID = (int32_t)-1;
+
   pinConfig();
+  setupInitialAlarmPool();
+  buzzer = PicoBuzzer(10);
+  buzzer.set_volume((uint8_t)255);
+  buzzer.assign_alarm_pool(alarm_pool_secondary);
+  Serial1.printf("buzzerGPIO %u \n", buzzer.get_GPIO());
+  Serial1.printf("buzzerVolume %u \n", buzzer.get_volume());
+  SongNote note(NOTE_A4, 10000);
+  Serial1.printf("note %u \n", note.note);
+  Serial1.printf("len %u \n", note.len_us);
+
   led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B);
   led.set_brightness(0.5);
   led.set_color(130, 255, 151);
   // multicore_launch_core1(c1Entry);
-  setupInitialAlarmPool();
+
   supervisor.assign_alarm_pool(alarm_pool_destroyable);
+
   threadSafeQueues();
   if ((!digitalRead(OLED_Y_RES_32_SELECT_GPIO) | !digitalRead(OLED_Y_RES_64_SELECT_GPIO)))
   {
@@ -132,13 +160,15 @@ void setup()
   passDataToPrograms();
   attachInterrupts();
 
-  // scrrenObj.init();
-  // Serial1.println("screen int'd");
-  // scrrenObj.safe_output(message.c_str());
+  //  scrrenObj.init();
+  //  Serial1.println("screen int'd");
+  //  scrrenObj.safe_output(message.c_str());
   supervisor.finalize();
   supervisor.startup_finish();
-  usb_hid.begin();
+  // usb_hid.begin();
+
   supervisor.run();
+  buzzer.play(happy_song);
 }
 
 void type(const char *character, int delay_ms = 5)
@@ -196,6 +226,8 @@ void loop()
   switch (queueOutput.TYPE)
   {
   case BUTTON:
+
+    buzzer.play(button_press);
     switch (queueOutput.PENDING_OBJECT_ID)
     {
     case HOME_BUTTON:
@@ -239,9 +271,25 @@ int pinConfig(void)
   pinMode(LED_GPIO_R, OUTPUT);
   pinMode(LED_GPIO_G, OUTPUT);
   pinMode(LED_GPIO_B, OUTPUT);
-
+  pinMode(BUZZER_GPIO, OUTPUT);
   return 0;
-}
+};
+
+int USBHidSetup()
+{
+  usb_hid = Adafruit_USBD_HID(desc_hid_report, sizeof(desc_hid_report), HID_ITF_PROTOCOL_KEYBOARD, 2, false);
+  usb_hid.setReportCallback(NULL, hid_report_callback);
+  return 0;
+};
+
+int serialSetup()
+{
+  Serial.begin(115200);
+  Serial1.begin(9600);
+  Serial1.println("Serial1");
+  Serial1.println("-------------------------------");
+  return 0;
+};
 
 int OLEDSetup()
 {
@@ -383,6 +431,7 @@ void gpio_callback(uint gpio, uint32_t events)
   };
   if (newStruct.TYPE != NONE)
   {
+
     queue_try_add(&pendingWorkQueue, (void *)&newStruct);
   };
   DeBounce = make_timeout_time_ms(GPIO_DEBOUCE_MS);

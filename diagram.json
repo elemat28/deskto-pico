@@ -46,7 +46,7 @@
       "top": -38.4,
       "left": 307.2,
       "rotate": 180,
-      "attrs": { "volume": "0.1" }
+      "attrs": { "volume": "1.0", "mode": "smooth" }
     },
     {
       "type": "wokwi-vcc",
