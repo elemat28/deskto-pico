@@ -457,10 +457,8 @@ int Supervisor::_blip_error() { return 0; };
 int Supervisor::_blip_success() { return 0; };
 int Supervisor::_short_error()
 {
-  Serial1.println("_short_error!");
   if (&notificationLED != nullptr)
   {
-    Serial1.println("notificationLED not null!");
     notificationLED.set_state(255, 0, 0, 1);
     notificationLED.turn_on();
     notificationLED.update_output();
@@ -487,10 +485,8 @@ int Supervisor::_state_default()
 };
 int Supervisor::_state_alert()
 {
-  Serial1.println("alert!");
   if (&notificationLED != nullptr)
   {
-    Serial1.println("notificationLED not null!");
     notificationLED.set_state(255, 255, 0, 1);
     notificationLED.turn_on();
     notificationLED.update_output();

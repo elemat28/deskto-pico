@@ -128,11 +128,7 @@ void setup()
   buzzer = PicoBuzzer(BUZZER_GPIO);
   buzzer.set_volume((uint8_t)255);
   buzzer.assign_alarm_pool(alarm_pool_secondary);
-  Serial1.printf("buzzerGPIO %u \n", buzzer.get_GPIO());
-  Serial1.printf("buzzerVolume %u \n", buzzer.get_volume());
   SongNote note(NOTE_A4, 10000);
-  Serial1.printf("note %u \n", note.note);
-  Serial1.printf("len %u \n", note.len_us);
 
   led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B, LED_SINK);
 
