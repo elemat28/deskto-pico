@@ -36,6 +36,7 @@ public:
     };
     RgbLED();
     RgbLED(uint8_t R_GPIO, uint8_t G_GPIO, uint8_t B_GPIO);
+    RgbLED(uint8_t R_GPIO, uint8_t G_GPIO, uint8_t B_GPIO, uint8_t SINK_GPIO);
     int define_pins(uint8_t R_GPIO, uint8_t G_GPIO, uint8_t B_GPIO);
     int set_brightness(float newBrightness);
     float get_brightness();
@@ -62,6 +63,7 @@ private:
     uint8_t _R_GPIO;
     uint8_t _G_GPIO;
     uint8_t _B_GPIO;
+    uint8_t _SINK_GPIO;
     bool _on_state;
     bool _new_on_state;
     LEDState _output_state;

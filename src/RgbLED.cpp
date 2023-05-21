@@ -108,6 +108,7 @@ RgbLED::RgbLED()
     _R_GPIO = 0;
     _G_GPIO = 0;
     _B_GPIO = 0;
+    _SINK_GPIO = 0;
     _on_state = false;
     _new_on_state = _on_state;
     _output_state = LEDState();
@@ -119,6 +120,14 @@ RgbLED::RgbLED(uint8_t R_GPIO, uint8_t G_GPIO, uint8_t B_GPIO) : RgbLED()
     _R_GPIO = R_GPIO;
     _G_GPIO = G_GPIO;
     _B_GPIO = B_GPIO;
+};
+
+RgbLED::RgbLED(uint8_t R_GPIO, uint8_t G_GPIO, uint8_t B_GPIO, uint8_t SINK_GPIO) : RgbLED(R_GPIO, G_GPIO, B_GPIO)
+{
+    _R_GPIO = R_GPIO;
+    _G_GPIO = G_GPIO;
+    _B_GPIO = B_GPIO;
+    _SINK_GPIO = SINK_GPIO;
 };
 
 int RgbLED::define_pins(uint8_t R_GPIO, uint8_t G_GPIO, uint8_t B_GPIO)
@@ -237,6 +246,7 @@ int RgbLED::set_state(uint8_t red_value,
 };
 int RgbLED::update_output()
 {
+    analogWriteRange(255);
     if ((_output_state == _new_state))
     {
         if (_on_state == _new_on_state)
@@ -251,15 +261,26 @@ int RgbLED::update_output()
     _on_state = _new_on_state;
     if (_on_state)
     {
+        if (_SINK_GPIO != 0)
+        {
+            pinMode(_SINK_GPIO, INPUT_PULLDOWN);
+        };
         analogWrite(_R_GPIO, _output_state.color.red * _output_state.brightness);
         analogWrite(_G_GPIO, _output_state.color.green * _output_state.brightness);
         analogWrite(_B_GPIO, _output_state.color.blue * _output_state.brightness);
     }
     else
     {
-        digitalWrite(_R_GPIO, 0);
-        digitalWrite(_G_GPIO, 0);
-        digitalWrite(_B_GPIO, 0);
+        if (_SINK_GPIO != 0)
+        {
+            pinMode(_SINK_GPIO, INPUT_PULLUP);
+        }
+        else
+        {
+            analogWrite(_R_GPIO, 0);
+            analogWrite(_G_GPIO, 0);
+            analogWrite(_B_GPIO, 0);
+        };
     };
     return 0;
 };

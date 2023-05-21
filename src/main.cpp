@@ -53,9 +53,10 @@ uint8_t const desc_hid_report[] =
 #define LED_GPIO_R 13
 #define LED_GPIO_G 12
 #define LED_GPIO_B 11
+#define LED_SINK 10
 RgbLED led;
 // Buzzer
-#define BUZZER_GPIO 10
+#define BUZZER_GPIO 9
 PicoBuzzer buzzer;
 // Timer Pools
 alarm_pool_t *alarm_pool_primary;
@@ -128,7 +129,7 @@ void setup()
 
   pinConfig();
   setupInitialAlarmPool();
-  buzzer = PicoBuzzer(10);
+  buzzer = PicoBuzzer(BUZZER_GPIO);
   buzzer.set_volume((uint8_t)255);
   buzzer.assign_alarm_pool(alarm_pool_secondary);
   Serial1.printf("buzzerGPIO %u \n", buzzer.get_GPIO());
@@ -137,7 +138,7 @@ void setup()
   Serial1.printf("note %u \n", note.note);
   Serial1.printf("len %u \n", note.len_us);
 
-  led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B);
+  led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B, LED_SINK);
   led.set_brightness(0.5);
   led.set_color(130, 255, 151);
   // multicore_launch_core1(c1Entry);
@@ -166,7 +167,8 @@ void setup()
   supervisor.finalize();
   supervisor.startup_finish();
   // usb_hid.begin();
-
+  led.turn_on();
+  led.update_output();
   supervisor.run();
   buzzer.play(happy_song);
 }
@@ -217,12 +219,9 @@ PendingWork queueOutput;
 String text = "Hello";
 void loop()
 {
-  led.turn_on();
-  led.update_output();
+
   // Serial1.println("blocking \n");
   queue_remove_blocking(&pendingWorkQueue, &queueOutput);
-  led.turn_off();
-  led.update_output();
   switch (queueOutput.TYPE)
   {
   case BUTTON:
@@ -231,6 +230,8 @@ void loop()
     switch (queueOutput.PENDING_OBJECT_ID)
     {
     case HOME_BUTTON:
+      led.turn_off();
+      led.update_output();
       supervisor.return_to_menu();
       supervisor.run(true);
       noUpdate = true;
@@ -244,6 +245,9 @@ void loop()
       supervisor.REQUIRED_BUTTONS.SELECT.trigger_function();
       break;
     case NEXT_GPIO:
+      led.set_state(0, 0, 255, 0.75);
+      led.turn_on();
+      led.update_output();
       printf("NEXT PRESSED \n");
       supervisor.REQUIRED_BUTTONS.NEXT.trigger_function();
       break;
@@ -271,6 +275,7 @@ int pinConfig(void)
   pinMode(LED_GPIO_R, OUTPUT);
   pinMode(LED_GPIO_G, OUTPUT);
   pinMode(LED_GPIO_B, OUTPUT);
+  pinMode(LED_SINK, INPUT_PULLDOWN);
   pinMode(BUZZER_GPIO, OUTPUT);
   return 0;
 };
