@@ -11,6 +11,7 @@
 #include "DEBUGSerialUIDisplay.h"
 #include "TimerProgram.h"
 #include "AutoLoginProgram.h"
+#include "RgbLED.h"
 OLEDUIDisplay scrrenObj;
 LCUIDisplay LCScreen;
 DEBUGSerialUIDisplay serialDisplay;
@@ -34,10 +35,11 @@ uint8_t const desc_hid_report[] =
 // I2C config
 #define I2C_WIRE1_SDA_GPIO 14
 #define I2C_WIRE1_SCL_GPIO 15
-// RGB_LED pind
+// RGB_LED pins
 #define LED_GPIO_R 13
 #define LED_GPIO_G 12
 #define LED_GPIO_B 11
+RgbLED led;
 // Timer Pools
 alarm_pool_t *alarm_pool_primary;
 alarm_pool_t *alarm_pool_secondary;
@@ -108,7 +110,9 @@ void setup()
   Serial1.println("-------------------------------");
   hold_callbackID = (int32_t)-1;
   pinConfig();
-
+  led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B);
+  led.set_brightness(0.5);
+  led.set_color(130, 255, 151);
   // multicore_launch_core1(c1Entry);
   setupInitialAlarmPool();
   supervisor.assign_alarm_pool(alarm_pool_destroyable);
@@ -133,9 +137,7 @@ void setup()
   // scrrenObj.safe_output(message.c_str());
   supervisor.finalize();
   supervisor.startup_finish();
-  digitalWrite(LED_GPIO_G, HIGH);
   usb_hid.begin();
-  digitalWrite(LED_GPIO_G, LOW);
   supervisor.run();
 }
 
@@ -185,11 +187,12 @@ PendingWork queueOutput;
 String text = "Hello";
 void loop()
 {
-  digitalWrite(LED_GPIO_R, HIGH);
+  led.turn_on();
+  led.update_output();
   // Serial1.println("blocking \n");
   queue_remove_blocking(&pendingWorkQueue, &queueOutput);
-  digitalWrite(LED_GPIO_R, LOW);
-
+  led.turn_off();
+  led.update_output();
   switch (queueOutput.TYPE)
   {
   case BUTTON:
