@@ -6,118 +6,101 @@
     {
       "type": "wokwi-pi-pico",
       "id": "pico",
-      "top": 259.32,
-      "left": 127.3,
-      "rotate": 180,
-      "attrs": {}
-    },
-    { "type": "wokwi-breadboard-mini", "id": "bb3", "top": 238.6, "left": 391.2, "attrs": {} },
-    {
-      "type": "wokwi-lcd1602",
-      "id": "lcd1",
-      "top": 99.12,
-      "left": 328.63,
-      "attrs": { "pins": "i2c" }
+      "top": -175.95,
+      "left": 454.8,
+      "attrs": { "env": "arduino-community" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn1",
-      "top": 277.8,
-      "left": 377.4,
-      "rotate": 90,
-      "attrs": { "color": "yellow" }
+      "top": 136.8,
+      "left": 384.2,
+      "rotate": 180,
+      "attrs": { "color": "yellow", "key": "q" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn2",
-      "top": 277.8,
-      "left": 444.6,
-      "rotate": 90,
-      "attrs": { "color": "green" }
+      "top": 140.6,
+      "left": 460.8,
+      "attrs": { "color": "green", "key": "w" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn3",
-      "top": 277.8,
-      "left": 511.8,
-      "rotate": 90,
-      "attrs": { "color": "blue" }
+      "top": 140.6,
+      "left": 537.6,
+      "attrs": { "color": "blue", "key": "e" }
     },
     {
       "type": "wokwi-rgb-led",
       "id": "rgb1",
-      "top": 20.04,
-      "left": 629.55,
+      "top": 4.4,
+      "left": 379.3,
+      "rotate": 180,
       "attrs": { "common": "cathode" }
     },
     {
       "type": "wokwi-buzzer",
       "id": "bz1",
-      "top": 65.34,
-      "left": 652.85,
-      "rotate": 90,
-      "attrs": { "volume": "0.1" }
+      "top": -38.4,
+      "left": 307.2,
+      "rotate": 180,
+      "attrs": { "volume": "1.0", "mode": "smooth" }
     },
     {
-      "type": "wokwi-ky-040",
-      "id": "encoder1",
-      "top": 253.43,
-      "left": 265.32,
-      "rotate": 180,
+      "type": "wokwi-vcc",
+      "id": "vcc1",
+      "top": 0.76,
+      "left": 422.4,
       "attrs": {}
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled1",
+      "top": 31.94,
+      "left": 441.83,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "sw1",
+      "top": -20.1,
+      "left": 535.6,
+      "rotate": 90,
+      "attrs": { "value": "1" }
     },
     {
       "type": "wokwi-gnd",
       "id": "gnd1",
-      "top": 93.58,
-      "left": 248.73,
-      "rotate": 180,
+      "top": 38.4,
+      "left": 421.8,
       "attrs": {}
-    },
-    { "type": "wokwi-vcc", "id": "vcc1", "top": 91.62, "left": 227.83, "attrs": {} },
-    {
-      "type": "wokwi-led",
-      "id": "led2",
-      "top": 208.34,
-      "left": 236.49,
-      "attrs": { "color": "red" }
     }
   ],
   "connections": [
-    [ "pico:GP9", "btn1:2.r", "yellow", [ "h0" ] ],
-    [ "pico:GP8", "bb3:8b.i", "green", [ "h0" ] ],
-    [ "pico:GP7", "bb3:15b.j", "blue", [ "h0" ] ],
-    [ "pico:GP10", "encoder1:CLK", "orange", [ "h0" ] ],
-    [ "pico:GP11", "encoder1:DT", "green", [ "h0" ] ],
-    [ "pico:GP12", "encoder1:SW", "cyan", [ "h0" ] ],
-    [ "lcd1:GND", "gnd1:GND", "black", [ "h0" ] ],
-    [ "vcc1:VCC", "encoder1:VCC", "red", [ "v0" ] ],
-    [ "pico:GP15", "rgb1:R", "red", [ "h2.6", "v-195.91" ] ],
-    [ "rgb1:G", "pico:GP14", "green", [ "v10.84", "h-444.48", "v13.99" ] ],
-    [ "rgb1:B", "pico:GP13", "blue", [ "v20.81", "h-444.9", "v207.02" ] ],
-    [ "pico:GND.4", "rgb1:COM", "black", [ "h28.06", "v-191.64", "h417.05" ] ],
-    [ "vcc1:VCC", "lcd1:VCC", "red", [ "v0" ] ],
-    [ "gnd1:GND", "bz1:1", "black", [ "v0" ] ],
-    [ "pico:GP6", "bz1:2", "green", [ "h0" ] ],
-    [ "lcd1:SCL", "pico:GP5", "green", [ "h-144.92", "v227.28" ] ],
-    [ "lcd1:SDA", "pico:GP4", "green", [ "h-154.45", "v243.7" ] ],
-    [ "btn1:1.l", "bb3:3t.c", "", [ "$bb" ] ],
-    [ "btn1:2.l", "bb3:1t.c", "", [ "$bb" ] ],
-    [ "btn1:1.r", "bb3:3b.h", "", [ "$bb" ] ],
-    [ "btn1:2.r", "bb3:1b.h", "", [ "$bb" ] ],
-    [ "btn3:1.l", "bb3:17t.c", "", [ "$bb" ] ],
-    [ "btn3:2.l", "bb3:15t.c", "", [ "$bb" ] ],
-    [ "btn3:1.r", "bb3:17b.h", "", [ "$bb" ] ],
-    [ "btn3:2.r", "bb3:15b.h", "", [ "$bb" ] ],
-    [ "gnd1:GND", "led2:C", "black", [ "v0" ] ],
-    [ "led2:A", "bb3:3t.a", "black", [ "v0" ] ],
-    [ "bb3:3t.b", "bb3:10t.b", "black", [ "v0" ] ],
-    [ "btn2:1.l", "bb3:10t.c", "", [ "$bb" ] ],
-    [ "btn2:2.l", "bb3:8t.c", "", [ "$bb" ] ],
-    [ "btn2:1.r", "bb3:10b.h", "", [ "$bb" ] ],
-    [ "btn2:2.r", "bb3:8b.h", "", [ "$bb" ] ],
-    [ "encoder1:GND", "led2:A", "black", [ "h0" ] ],
-    [ "btn2:1.l", "btn3:1.l", "black", [ "v0" ] ]
+    ["pico:GP0", "$serialMonitor:RX", "", []],
+    ["pico:GP1", "$serialMonitor:TX", "", []],
+    ["oled1:GND", "gnd1:GND", "black", ["v0"]],
+    ["oled1:VCC", "vcc1:VCC", "red", ["v0"]],
+    ["oled1:SCL", "pico:GP15", "green", ["v0"]],
+    ["oled1:SDA", "pico:GP14", "green", ["v0"]],
+    ["btn1:2.l", "pico:GP19", "yellow", ["h0", "v-29", "h134.4", "v-144"]],
+    ["btn2:1.r", "pico:GP20", "green", ["v-19.2", "h67.4", "v-163.2"]],
+    ["btn3:1.r", "pico:GP21", "blue", ["v0"]],
+    ["pico:GND.6", "btn3:2.r", "black", ["h87.6", "v220.8"]],
+    ["btn3:2.l", "btn2:2.r", "black", ["h0"]],
+    ["btn2:2.l", "btn1:1.l", "black", ["h0"]],
+    ["pico:GND.5", "sw1:2", "black", ["h0"]],
+    ["pico:GP17", "sw1:3", "green", ["h0"]],
+    ["pico:GP18", "sw1:1", "green", ["h0"]],
+    ["pico:GP13", "rgb1:R", "red", ["h0"]],
+    ["pico:GP12", "rgb1:G", "green", ["h0"]],
+    ["pico:GP11", "rgb1:B", "blue", ["h0"]],
+    ["pico:GND.3", "bz1:1", "black", ["h0"]],
+    ["rgb1:COM", "pico:GP10", "black", ["v0"]],
+    ["bz1:2", "pico:GP9", "green", ["v0"]]
   ],
+  "serialMonitor": { "display": "terminal", "newline": "lf" },
   "dependencies": {}
 }

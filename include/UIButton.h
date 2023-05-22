@@ -2,11 +2,8 @@
 #define PICOUIBUTTON_H
 
 
+#include <functional>
 #include <string>
-//To help us illustrate unit testing in action we will be making an object that 
-//will encapsulate behavior of a setting for us 
-//(think - software sound volume; max value 100, min 0, can't cross those boundries)
-
 class UIButton
 {
 private:
@@ -14,21 +11,27 @@ private:
     bool _displayAsValue;
     std::string _displayAs;
     volatile float* _value;
-    void* _callback;
-    //While there is no use in a setting you can't know the value of
-    //we cannot allow another object to change our value without us even knowing
-    //so we will add interface methods
-
+    void (*_callback)(void);
+    std::string _ID;
+    std::function<void()> functionPointer; 
 public:
     UIButton();
-    UIButton(std::string label);
+    UIButton(std::string ID);
     UIButton(float* value);
     ~UIButton();
+    std::string get_ID();
+    bool enable(void);
+    bool isEnabled(void);
     void shouldDisplayAsValue(bool displayAsCurrentValue);
     void setValue(float* value);
-    void setCallback(void* funct_ptr);
+    void setCallback(void (*funct_ptr)(), void* target);
+    void setCallbackFunction(std::function<void()> callbackFunction);
     void setDisplayAs(std::string newLabel);
     std::string print();
+    void trigger(void);
+    void trigger_function(void);
+    void setID(std::string ID);
+    
 
 };
 
