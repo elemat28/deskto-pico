@@ -130,7 +130,7 @@ void setup()
   buzzer.assign_alarm_pool(alarm_pool_secondary);
   SongNote note(NOTE_A4, 10000);
 
-  led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B, LED_SINK);
+  led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B);
 
   // multicore_launch_core1(c1Entry);
 
