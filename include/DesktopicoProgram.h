@@ -1,100 +1,11 @@
 #ifndef DESKTOPRGRM_H
 #define DESKTOPRGRM_H
+#include <DesktoPicoENV.h>
 #include <UIButtonSet.h>
 #include <vector>
 #ifndef MAXPICOPROGRAMIDCHARS
 #define MAXPICOPROGRAMIDCHARS 16
 #endif
-
-enum OUTPUT_FORMAT
-{
-  U_DEF,
-  BASE,
-  OPTION_BOOLEAN,
-  LIST_OPTIONS_SIMPLE,
-  LIST_OPTIONS_INDEXED,
-  KEY_VALUE_LIST_SIMPLE,
-  KEY_VALUE_LIST_INDEXED,
-  KEY_OPTION_SCROLL,
-  KEY_OPTION_GRANULAR,
-  OPTION_BUTTONS,
-  HEADING_LIST
-};
-
-typedef std::vector<OUTPUT_FORMAT> SUPPORTED_FORMATS;
-
-struct LIST_OPTIONS_SIMPLE_STRUCT
-{
-  int *INDEX;
-  std::vector<std::string> OPTIONS_VECTOR;
-  LIST_OPTIONS_SIMPLE_STRUCT(int *index, std::vector<std::string> options)
-  {
-    INDEX = index;
-    OPTIONS_VECTOR = options;
-  }
-  LIST_OPTIONS_SIMPLE_STRUCT()
-  {
-    INDEX = nullptr;
-  }
-};
-
-struct KEY_VALUE_LIST_SIMPLE_STRUCT
-{
-  int *INDEX;
-  std::map<std::string, std::string> OPTIONS_MAP;
-  std::vector<std::pair<std::string, std::string>> OPTIONS_VECTOR;
-  KEY_VALUE_LIST_SIMPLE_STRUCT(int *index, std::map<std::string, std::string> key_value)
-  {
-    INDEX = index;
-    OPTIONS_MAP = key_value;
-  }
-  KEY_VALUE_LIST_SIMPLE_STRUCT()
-  {
-    INDEX = nullptr;
-    OPTIONS_VECTOR.clear();
-  }
-  std::vector<std::pair<std::string, std::string>> as_vector()
-  {
-    auto_vector();
-    return OPTIONS_VECTOR;
-  }
-  void auto_vector()
-  {
-  }
-};
-
-struct OPTION_BUTTONS_STRUCT
-{
-  std::string message;
-  UIButtonSet buttons;
-  OPTION_BUTTONS_STRUCT()
-  {
-    message = std::string();
-    buttons = UIButtonSet();
-  };
-  OPTION_BUTTONS_STRUCT(std::string label_message) : OPTION_BUTTONS_STRUCT()
-  {
-    message = label_message;
-  };
-};
-
-struct ProgramReturn
-{
-  std::string PROGRAM_ID;
-  OUTPUT_FORMAT volatile formatOfData;
-  SUPPORTED_FORMATS *FORMAT_PREFERENCE;
-  UIButtonSet *volatile buttonSet;
-  void *data;
-  int refresh_freq_ms;
-  ProgramReturn()
-  {
-    formatOfData = U_DEF;
-    PROGRAM_ID = nullptr;
-    FORMAT_PREFERENCE = nullptr;
-    buttonSet = nullptr;
-    refresh_freq_ms = -1;
-  }
-};
 
 class DesktopicoProgram
 {

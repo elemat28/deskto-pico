@@ -12,7 +12,6 @@ void *DesktopicoProgram::getDataPtr()
 
 DesktopicoProgram::DesktopicoProgram(std::string program_ID, std::string displayName) : static_ID(program_ID), displayAs(displayName)
 {
-
   _hasDataBeenPassed = false;
   returnValue = ProgramReturn();
 }
@@ -48,5 +47,3 @@ std::string DesktopicoProgram::getDisplayableName()
     return displayAs;
   }
 }
-
-

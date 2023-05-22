@@ -153,6 +153,10 @@ std::string TimerProgram::formatTimerTimeLeftToString(Timer *timerObj)
 void TimerProgram::QUICKSELECT_configure()
 {
   current_screen = QUICKSELECT;
+  if (supervisor_ptr->get_current_state() != UINotification::OS_NOTIFICATION_STATUS::DEFAULT)
+  {
+    supervisor_ptr->state_default();
+  };
   quickselect_return_data_as_option_buttons = OPTION_BUTTONS_STRUCT("Select minutes");
   quickselect_return_data_as_option_buttons.buttons.RETURN.setDisplayAs("15");
   quickselect_return_data_as_option_buttons.buttons.SELECT.setDisplayAs("30");
@@ -175,6 +179,15 @@ void TimerProgram::RUNNING_configure()
 {
   current_screen = RUNNING;
   TimerStatus status = timerObject.getStatus();
+
+  if (timerObject.getTimeLeftAsSeconds() < timerObject.getTimerLenAsSeconds() / 3)
+  {
+    supervisor_ptr->state_alert();
+  }
+  else
+  {
+    supervisor_ptr->state_default();
+  };
   running_return_data_as_option_buttons = OPTION_BUTTONS_STRUCT(formatTimerTimeLeftToString(&timerObject));
   running_return_data_as_option_buttons.buttons.RETURN.setDisplayAs("BCK");
   running_return_data_as_option_buttons.buttons.SELECT.setDisplayAs("PAUSE");
@@ -206,6 +219,10 @@ void TimerProgram::RUNNING_configure()
     break;
 
   case FINISHED:
+    if (supervisor_ptr->get_current_state() == UINotification::OS_NOTIFICATION_STATUS::ALERT)
+    {
+      supervisor_ptr->short_error();
+    };
     running_return_data_as_option_buttons.buttons.SELECT.setDisplayAs(" ");
     break;
 

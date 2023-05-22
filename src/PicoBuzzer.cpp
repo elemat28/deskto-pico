@@ -83,7 +83,6 @@ float PicoBuzzer::get_volume_pc()
 u64_t PicoBuzzer::play(SongNote SongNote)
 {
     analogWriteFreq(SongNote.note);
-    Serial1.println(_volume);
     analogWrite(_GPIO, 128);
     return 0;
 };

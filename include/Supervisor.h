@@ -1,76 +1,18 @@
 #ifndef UISUPRVSR_H
 #define UISUPRVSR_H
-#include <Arduino.h>
-#include <pico.h>
-#include <pico/time.h>
-#include "pico/util/queue.h"
-#include "UIButtonSet.h"
+#include <DesktoPicoENV.h>
 #include "AboutSystemInfo.h"
 #include "SupervisorMenu.h"
 #include "UIDisplayHandler.h"
+#include "RgbLED.h"
+#include "PicoBuzzer.h"
 #include <cstring>
 
 #ifndef UISUPRVSRMAXPRGRMS
 #define UISUPRVSRMAXPRGRMS 6
 #endif
 
-enum TypeOfWork
-{
-  NONE,
-  INTERRUPT,
-  BUTTON,
-  REFRESH,
-  TIMEOUT
-};
-struct PendingWork
-{
-  TypeOfWork TYPE;
-  int PENDING_OBJECT_ID;
-  void *data;
-  PendingWork()
-  {
-    TYPE = NONE;
-    PENDING_OBJECT_ID = -1;
-    data = nullptr;
-  };
-  PendingWork(TypeOfWork type, int ID) : PendingWork()
-  {
-    TYPE = type;
-    PENDING_OBJECT_ID = ID;
-  };
-  PendingWork(TypeOfWork type, uint ID) : PendingWork()
-  {
-    TYPE = type;
-    PENDING_OBJECT_ID = ID;
-  };
-  PendingWork(TypeOfWork type, int ID, void *data_ptr)
-  {
-    TYPE = type;
-    PENDING_OBJECT_ID = ID;
-    data = data_ptr;
-  };
-};
-
-struct RefreshTimerData
-{
-  alarm_pool_t *alarmPool;
-  alarm_id_t *alarmID;
-  bool *screenRefreshPending;
-  RefreshTimerData(alarm_pool_t *pool_ptr, alarm_id_t *alarmID_ptr, bool *screenRefresh_ptr)
-  {
-    alarmPool = pool_ptr;
-    alarmID = alarmID_ptr;
-    screenRefreshPending = screenRefresh_ptr;
-  }
-  RefreshTimerData()
-  {
-    alarmPool = nullptr;
-    alarmID = nullptr;
-    screenRefreshPending = nullptr;
-  }
-};
-
-class Supervisor
+class Supervisor : public UINotification
 {
 public:
   UIButtonSet REQUIRED_BUTTONS;
@@ -87,6 +29,8 @@ public:
   bool passDataToProgramID(std::string programID, void *data);
   void set_UIDisplay(UIDisplayHandler *display);
   void set_workQueue(queue_t *queue_ptr);
+  void set_RGBLed(RgbLED &object);
+  void set_Buzzer(PicoBuzzer &object);
   void assign_alarm_pool(alarm_pool_t *pass_ptr);
   void set_startup_program(char name[]);
   void startup_begin();
@@ -102,6 +46,23 @@ public:
   std::string getLogs();
   void return_to_menu();
   UIButton HOME;
+
+protected:
+  int _blip_info();
+  int _blip_warn();
+  int _blip_error();
+  int _blip_success();
+  int _short_error();
+  int _short_success();
+  int _state_default();
+  int _state_alert();
+  int _state_alarm();
+  int _state_waiting();
+  int _await_info(uint optional_timeout);
+  int _await_warn(uint optional_timeout);
+  int _await_error(uint optional_timeout);
+  int _await_choice(uint optional_timeout);
+  std::vector<SongNote> SHORT_ERROR;
 
 private:
   UIButton HOME_BUTTON;
@@ -149,6 +110,9 @@ private:
 
   UIDisplayHandler *hardwareDisplay;
   UIDisplayHandler *temp_hardwareDisplay;
+
+  RgbLED notificationLED;
+  PicoBuzzer buzzer;
 
   queue_t *workQueue;
   queue_t *temp_workQueue;
