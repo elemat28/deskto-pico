@@ -131,9 +131,6 @@ void setup()
   SongNote note(NOTE_A4, 10000);
 
   led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B);
-
-  // multicore_launch_core1(c1Entry);
-
   supervisor.assign_alarm_pool(alarm_pool_destroyable);
 
   threadSafeQueues();
