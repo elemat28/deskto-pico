@@ -138,7 +138,7 @@ void setup()
   Serial1.printf("note %u \n", note.note);
   Serial1.printf("len %u \n", note.len_us);
 
-  led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B, LED_SINK);
+  led = RgbLED(LED_GPIO_R, LED_GPIO_G, LED_GPIO_B);
   led.set_brightness(0.5);
   led.set_color(130, 255, 151);
   // multicore_launch_core1(c1Entry);

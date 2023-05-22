@@ -98,7 +98,7 @@
     ["pico:GP12", "rgb1:G", "green", ["h0"]],
     ["pico:GP11", "rgb1:B", "blue", ["h0"]],
     ["pico:GND.3", "bz1:1", "black", ["h0"]],
-    ["rgb1:COM", "pico:GP10", "black", ["v0"]],
+    ["rgb1:COM", "pico:GND.4", "black", ["v0"]],
     ["bz1:2", "pico:GP9", "green", ["v0"]]
   ],
   "serialMonitor": { "display": "terminal", "newline": "lf" },
