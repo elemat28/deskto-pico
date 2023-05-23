@@ -4,6 +4,7 @@
 #include <pico/stdio.h>
 #include <Wire.h>
 #include <Adafruit_TinyUSB.h>
+#include <RTClib.h>
 #include "pico/util/queue.h"
 #include "Supervisor.h"
 #include "OLEDUIDisplay.h"
@@ -13,6 +14,9 @@
 #include "AutoLoginProgram.h"
 #include "RgbLED.h"
 #include "PicoBuzzer.h"
+
+RTC_DS1307 rtc;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 std::vector<SongNote> happy_song = {
     SongNote(NOTE_F3, 250),
@@ -100,6 +104,9 @@ bool activeState = false;
 Supervisor supervisor = Supervisor();
 UINotification *supervisor_ptr = &supervisor;
 String message = String("Hello");
+
+std::string msg = "";
+std::string msgSafe = "SAFE!";
 void core1_entry()
 {
 }
@@ -117,7 +124,7 @@ Adafruit_USBD_HID usb_hid;
 uint8_t const conv_table[128][2] = {HID_ASCII_TO_KEYCODE};
 void setup()
 {
-
+  rp2040.enableDoubleResetBootloader();
   USBHidSetup();
   usb_hid.begin();
   serialSetup();
@@ -150,13 +157,67 @@ void setup()
   attachInterrupts();
   supervisor.set_RGBLed(led);
   supervisor.set_Buzzer(buzzer);
-  //  scrrenObj.init();
-  //  Serial1.println("screen int'd");
-  //  scrrenObj.safe_output(message.c_str());
+  rtc.begin(&Wire1);
+  if (rtc.isrunning())
+  {
+    Serial1.println("rtc already running...");
+    DateTime now = rtc.now();
+    char buf1[] = "hh:mm";
+    // Serial.println(now.toString(buf1));
+
+    char buf2[] = "YYMMDD-hh:mm:ss";
+    // Serial.println(now.toString(buf2));
+
+    char buf3[] = "Today is DDD, MMM DD YYYY";
+    // Serial.println(now.toString(buf3));
+
+    char buf4[] = "DD-MM-YYYY";
+    now.toString(buf4);
+    msg.append(buf4);
+    Serial1.println(msg.c_str());
+    // scrrenObj.safe_output(msg.c_str());
+    Serial1.print(now.year(), DEC);
+    Serial1.print('/');
+    Serial1.print(now.month(), DEC);
+    Serial1.print('/');
+    Serial1.print(now.day(), DEC);
+    Serial1.print(" (");
+    Serial1.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    Serial1.print(") ");
+    Serial1.print(now.hour(), DEC);
+    Serial1.print(':');
+    Serial1.print(now.minute(), DEC);
+    Serial1.print(':');
+    Serial1.print(now.second(), DEC);
+    Serial1.println();
+  }
+  else
+  {
+    Serial1.println("rtc not runnig, sttar ssetyup..");
+    msg = "not running...";
+    // rtc.
+    // rtc.begin(&Wire1);
+    if (rtc.isrunning())
+    {
+      Serial1.println("rtc setup successful...");
+    }
+    else
+    {
+      Serial1.println("rtc setup failed...");
+    };
+  };
+
+  // scrrenObj.init();
+  // scrrenObj.
+  //   Serial1.println("screen int'd");
+  // scrrenObj.safe_output(message.c_str());
+
   supervisor.finalize();
   supervisor.startup_finish();
   // usb_hid.begin();
+
   supervisor.run();
+  scrrenObj.safe_output(msg.c_str());
   // buzzer.play(happy_song);
 }
 
@@ -207,7 +268,8 @@ String text = "Hello";
 void loop()
 {
 
-  // Serial1.println("blocking \n");
+  // scrrenObj.
+  //  Serial1.println("blocking \n");
   queue_remove_blocking(&pendingWorkQueue, &queueOutput);
   switch (queueOutput.TYPE)
   {

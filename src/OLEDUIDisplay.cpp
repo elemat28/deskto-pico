@@ -153,11 +153,17 @@ void OLEDUIDisplay::center_output_with_arrows(int row, std::string *output, bool
 
 void OLEDUIDisplay::safe_output(char *data)
 {
+  std::string tempstr = "";
   screen.clearDisplay();
-  screen.setTextSize(2);
-  screen.setCursor(0, 0);
 
-  center_output(0, (std::string *)data);
+  screen.setCursor(0, 0);
+  char *data_ptr_copy = data;
+  if (*data_ptr_copy != '\0')
+  {
+    tempstr.append(data_ptr_copy);
+    data_ptr_copy++;
+  };
+  center_output(0, &tempstr);
 
   screen.invertDisplay(true);
   String debug = String("");
@@ -177,6 +183,7 @@ void OLEDUIDisplay::safe_output(char *data)
   screen.setTextSize(currentTextSize);
 
   screen.display();
+  screen.invertDisplay(false);
 }
 
 void OLEDUIDisplay::safe_output(char const *data) { safe_output((char *)data); };
